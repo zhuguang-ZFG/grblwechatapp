@@ -7,12 +7,59 @@ const {
 } = require("../../utils/project-formatters");
 const { formatDeviceStatus } = require("../../utils/status-formatters");
 
+function showActionSheet(itemList) {
+  if (typeof wx === "undefined" || typeof wx.showActionSheet !== "function") {
+    return Promise.resolve({ tapIndex: 0, cancel: false });
+  }
+  return new Promise((resolve, reject) => {
+    wx.showActionSheet({
+      itemList,
+      success(result) {
+        resolve(result || {});
+      },
+      fail(error) {
+        reject(error);
+      }
+    });
+  });
+}
+
+function confirmAction({ title, content }) {
+  if (typeof wx === "undefined" || typeof wx.showModal !== "function") {
+    return Promise.resolve(true);
+  }
+  return new Promise((resolve) => {
+    wx.showModal({
+      title,
+      content,
+      success(result) {
+        resolve(Boolean(result && result.confirm));
+      },
+      fail() {
+        resolve(false);
+      }
+    });
+  });
+}
+
+function showToast(title) {
+  if (typeof wx === "undefined" || typeof wx.showToast !== "function") {
+    return;
+  }
+  wx.showToast({
+    title,
+    icon: "none"
+  });
+}
+
 Page({
   data: {
     filters: ["全部", "文字", "图片"],
     filterValues: ["all", "text", "image"],
     filterIndex: 0,
-    projects: []
+    projects: [],
+    actionLoading: false,
+    actionProjectId: ""
   },
 
   async onShow() {
@@ -35,7 +82,7 @@ Page({
       : allProjects.filter((item) => item.sourceType === filter);
 
     const devices = await api.listDevices();
-    const deviceMap = Object.fromEntries(devices.items.map((item) => [item.id, item]));
+    const deviceMap = Object.fromEntries((devices.items || []).map((item) => [item.id, item]));
 
     const projects = filtered.map((item) => ({
       ...item,
@@ -62,5 +109,80 @@ Page({
   async createImageProject() {
     const result = await api.createProject("image");
     wx.navigateTo({ url: `/pages/workspace/editor/index?id=${result.id}` });
+  },
+
+  async openProjectActions(event) {
+    if (this.data.actionLoading) {
+      return;
+    }
+    const projectId = event.currentTarget.dataset.id;
+    const actions = [
+      { label: "复制项目", handler: () => this.duplicateProject(projectId) },
+      { label: "归档项目", handler: () => this.archiveProject(projectId) },
+      { label: "删除项目", handler: () => this.deleteProject(projectId) }
+    ];
+
+    try {
+      const result = await showActionSheet(actions.map((item) => item.label));
+      if (typeof result.tapIndex !== "number" || result.cancel) {
+        return;
+      }
+      const action = actions[result.tapIndex];
+      if (action) {
+        await action.handler();
+      }
+    } catch (error) {
+      // Treat canceled action sheet as no-op.
+    }
+  },
+
+  async duplicateProject(projectId) {
+    this.setData({ actionLoading: true, actionProjectId: projectId });
+    try {
+      const result = await api.duplicateProject(projectId);
+      showToast("已复制项目");
+      await this.loadProjects();
+      if (result && result.id) {
+        wx.navigateTo({ url: `/pages/workspace/editor/index?id=${result.id}` });
+      }
+    } finally {
+      this.setData({ actionLoading: false, actionProjectId: "" });
+    }
+  },
+
+  async archiveProject(projectId) {
+    const confirmed = await confirmAction({
+      title: "归档项目",
+      content: "归档后项目将从当前列表移出，是否继续？"
+    });
+    if (!confirmed) {
+      return;
+    }
+    this.setData({ actionLoading: true, actionProjectId: projectId });
+    try {
+      await api.archiveProject(projectId);
+      showToast("项目已归档");
+      await this.loadProjects();
+    } finally {
+      this.setData({ actionLoading: false, actionProjectId: "" });
+    }
+  },
+
+  async deleteProject(projectId) {
+    const confirmed = await confirmAction({
+      title: "删除项目",
+      content: "删除后不可恢复，是否继续？"
+    });
+    if (!confirmed) {
+      return;
+    }
+    this.setData({ actionLoading: true, actionProjectId: projectId });
+    try {
+      await api.deleteProject(projectId);
+      showToast("项目已删除");
+      await this.loadProjects();
+    } finally {
+      this.setData({ actionLoading: false, actionProjectId: "" });
+    }
   }
 });

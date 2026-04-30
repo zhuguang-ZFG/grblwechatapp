@@ -308,6 +308,41 @@ async function saveProject(projectId, payload) {
   return clone(state.projects[index]);
 }
 
+async function duplicateProject(projectId) {
+  await wait();
+  const project = state.projects.find((item) => item.id === projectId);
+  const duplicated = clone(project);
+  duplicated.id = nextId("prj", "project");
+  duplicated.name = `${project.name} Copy`;
+  duplicated.updatedAt = "2026-05-01T10:20:30Z";
+  state.projects.unshift(duplicated);
+  return clone(duplicated);
+}
+
+async function archiveProject(projectId) {
+  await wait();
+  const index = state.projects.findIndex((item) => item.id === projectId);
+  if (index >= 0) {
+    state.projects.splice(index, 1);
+  }
+  return {
+    id: projectId,
+    archived: true
+  };
+}
+
+async function deleteProject(projectId) {
+  await wait();
+  const index = state.projects.findIndex((item) => item.id === projectId);
+  if (index >= 0) {
+    state.projects.splice(index, 1);
+  }
+  return {
+    id: projectId,
+    deleted: true
+  };
+}
+
 async function createPreview(projectId) {
   await wait();
   const previewId = nextId("pre", "preview");
@@ -463,6 +498,9 @@ module.exports = {
   listProjects,
   getProject,
   saveProject,
+  duplicateProject,
+  archiveProject,
+  deleteProject,
   createPreview,
   getPreview,
   createGeneration,

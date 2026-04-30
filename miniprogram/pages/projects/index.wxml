@@ -1,7 +1,7 @@
 <view class="screen stack">
   <view class="hero-panel stack">
     <text class="eyebrow">项目清单</text>
-    <text class="hero-title">把文本和图片项目收在一页，方便继续编辑、预览和下发</text>
+    <text class="hero-title">把文字和图片项目收在一页，方便继续编辑、预览和下发</text>
     <text class="hero-copy">这里先展示 P0 最关键的项目状态：关联设备、预览情况和生成产物。</text>
   </view>
 
@@ -43,6 +43,20 @@
           <text class="project-meta-label">项目 ID</text>
           <text class="project-meta-value">{{item.id}}</text>
         </view>
+      </view>
+
+      <view class="inline-actions">
+        <button
+          size="mini"
+          class="secondary-btn"
+          bindtap="openProjectActions"
+          catchtap="openProjectActions"
+          data-id="{{item.id}}"
+          loading="{{actionLoading && actionProjectId === item.id}}"
+          disabled="{{actionLoading}}"
+        >
+          更多操作
+        </button>
       </view>
     </view>
   </view>
