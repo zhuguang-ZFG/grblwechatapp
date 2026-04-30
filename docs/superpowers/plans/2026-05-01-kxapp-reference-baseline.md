@@ -34,6 +34,8 @@
   `docs/superpowers/specs/2026-05-01-kxapp-failure-codes-v0.md`
 - Backend implementation plan:
   `docs/superpowers/plans/2026-05-01-kxapp-backend-p0-implementation.md`
+- WeChat DevTools checklist:
+  `docs/superpowers/plans/2026-05-01-kxapp-wechat-devtools-checklist.md`
 
 ## 2. Agreed Migration Direction
 
@@ -300,6 +302,7 @@ Read in this order:
 3. `docs/superpowers/plans/2026-05-01-kxapp-api-and-data-model.md`
 4. `docs/superpowers/specs/2026-05-01-kxapp-backend-p0-design.md`
 5. `docs/superpowers/plans/2026-05-01-kxapp-backend-p0-implementation.md`
+6. `docs/superpowers/plans/2026-05-01-kxapp-wechat-devtools-checklist.md`
 
 Then inspect these code anchors:
 
