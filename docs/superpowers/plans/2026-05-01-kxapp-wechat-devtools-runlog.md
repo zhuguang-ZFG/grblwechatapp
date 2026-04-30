@@ -23,6 +23,12 @@ Quick helper for step 5:
 powershell -ExecutionPolicy Bypass -File .\scripts\wechat-devtools-new-runlog-entry.ps1 -Operator "your name"
 ```
 
+Or use the combined smoke bootstrap helper when you want one command to create a new entry and run backend pre-checks first:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\wechat-devtools-smoke-bootstrap.ps1 -Operator "your name"
+```
+
 ## 2. Status Legend
 
 - `PASS`: verified in DevTools and behaved as expected

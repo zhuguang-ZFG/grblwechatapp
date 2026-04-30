@@ -60,6 +60,14 @@ For a real preflight run:
 powershell -ExecutionPolicy Bypass -File .\scripts\wechat-devtools-preflight.ps1
 ```
 
+For a one-command smoke preparation pass that appends a fresh run log template and then runs backend checks:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\wechat-devtools-smoke-bootstrap.ps1 -Operator "your name"
+```
+
+Add `-StartBackend` if you also want it to launch `node src/server.js` in the background after tests pass.
+
 ### 3.2 Backend startup
 
 From `D:\GIT\wechatapp\backend`:
