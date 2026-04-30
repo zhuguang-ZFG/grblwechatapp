@@ -33,5 +33,6 @@ function resolveFailure(code) {
 }
 
 module.exports = {
-  resolveFailure
+  resolveFailure,
+  FAILURE_CODE_MAP
 };

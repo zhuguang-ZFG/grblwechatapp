@@ -96,6 +96,14 @@ function createJobsService(app) {
     if (!row) {
       return null;
     }
+    if (!["queued", "dispatching", "running"].includes(row.status)) {
+      return {
+        error: {
+          code: "invalid_cancel_target",
+          message: "Only active jobs can be canceled"
+        }
+      };
+    }
 
     db.prepare("UPDATE jobs SET status = ?, progress_json = ?, updated_at = ? WHERE id = ?")
       .run("canceled", JSON.stringify({ percent: 0, currentStep: "canceled" }), now(), jobId);
@@ -109,6 +117,15 @@ function createJobsService(app) {
     const row = db.prepare("SELECT * FROM jobs WHERE id = ?").get(jobId);
     if (!row) {
       return null;
+    }
+    const failure = parseFailure(row.failure_json);
+    if (row.status !== "failed" || !failure || !failure.retryable) {
+      return {
+        error: {
+          code: "invalid_retry_target",
+          message: "Only retryable failed jobs can be retried"
+        }
+      };
     }
 
     const projectOwner = db.prepare("SELECT owner_user_id FROM projects WHERE id = ?").get(row.project_id);

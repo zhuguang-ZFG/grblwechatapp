@@ -26,6 +26,9 @@ function registerJobRoutes(app) {
     if (!job) {
       return sendError(reply, 404, "job_not_found", "Job was not found");
     }
+    if (job.error) {
+      return sendError(reply, 409, job.error.code, job.error.message);
+    }
     return job;
   });
 
@@ -33,6 +36,9 @@ function registerJobRoutes(app) {
     const job = app.jobsService.retryJob(request.params.id);
     if (!job) {
       return sendError(reply, 404, "job_not_found", "Job was not found");
+    }
+    if (job.error) {
+      return sendError(reply, 409, job.error.code, job.error.message);
     }
     return job;
   });

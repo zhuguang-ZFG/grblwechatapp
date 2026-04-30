@@ -11,6 +11,7 @@ function loadRequestModule() {
 
 async function run() {
   const captured = [];
+  let shouldFail = false;
 
   require.cache[envModulePath] = {
     id: envModulePath,
@@ -30,6 +31,16 @@ async function run() {
     },
     request(options) {
       captured.push(options);
+      if (shouldFail) {
+        options.success({
+          statusCode: 409,
+          data: {
+            code: "invalid_retry_target",
+            message: "Only retryable failed jobs can be retried"
+          }
+        });
+        return;
+      }
       options.success({
         statusCode: 200,
         data: {
@@ -48,6 +59,21 @@ async function run() {
   assert.deepStrictEqual(response, { ok: true });
   assert.strictEqual(captured[0].url, "https://api.example.test/api/v1/devices");
   assert.strictEqual(captured[0].header.Authorization, "Bearer live_token_123");
+
+  shouldFail = true;
+  await assert.rejects(
+    () =>
+      request({
+        url: "/jobs/job_x/retry",
+        method: "POST"
+      }),
+    (error) => {
+      assert.strictEqual(error.message, "Only retryable failed jobs can be retried");
+      assert.strictEqual(error.code, "invalid_retry_target");
+      assert.strictEqual(error.statusCode, 409);
+      return true;
+    }
+  );
 }
 
 run().catch((error) => {
