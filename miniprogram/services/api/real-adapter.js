@@ -1,4 +1,5 @@
 const { request } = require("../../utils/request");
+const session = require("../../utils/session");
 
 const SELECTED_DEVICE_KEY = "selectedDevice";
 
@@ -47,10 +48,13 @@ module.exports = {
   },
 
   register(payload) {
+    const pendingRegistration = session.getPendingRegistration() || {};
     return request({
       url: "/auth/register",
       method: "POST",
-      data: payload
+      data: Object.assign({}, payload, {
+        tempAuthToken: pendingRegistration.tempAuthToken
+      })
     });
   },
 

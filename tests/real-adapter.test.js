@@ -44,6 +44,12 @@ global.wx = {
 
 async function run() {
   recordedRequests = [];
+  global.wx._storage.pendingRegistration = {
+    tempAuthToken: "temp_auth_token_123",
+    profile: {
+      nickname: "Fresh User"
+    }
+  };
 
   global.wx.login = ({ success }) => {
     success({ code: "wx_code_123" });
@@ -56,6 +62,14 @@ async function run() {
   const projects = await adapter.listProjects();
   assert.deepStrictEqual(projects, [{ id: "prj_1", name: "Mock project" }]);
   assert.strictEqual(recordedRequests[1].url, "/projects?page=1&pageSize=20");
+
+  await adapter.register({
+    nickname: "Fresh User",
+    mobile: "13800000000",
+    agreeTerms: true
+  });
+  assert.strictEqual(recordedRequests[2].url, "/auth/register");
+  assert.strictEqual(recordedRequests[2].data.tempAuthToken, "temp_auth_token_123");
 
   const selected = {
     id: "dev_123",

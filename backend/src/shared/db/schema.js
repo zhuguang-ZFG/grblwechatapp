@@ -16,6 +16,13 @@ function applySchema(db) {
       created_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS temp_auth_sessions (
+      token TEXT PRIMARY KEY,
+      wechat_open_id TEXT NOT NULL,
+      profile_json TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS devices (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,

@@ -23,9 +23,16 @@ function createAuthService(app) {
     const user = db.prepare("SELECT * FROM users WHERE wechat_open_id = ?").get(openId);
 
     if (!user) {
+      const tempAuthToken = createToken();
+      db.prepare(`
+        INSERT INTO temp_auth_sessions (token, wechat_open_id, profile_json, created_at)
+        VALUES (?, ?, ?, ?)
+      `).run(tempAuthToken, openId, JSON.stringify(payload.profile || {}), now());
+
       return {
         isNewUser: true,
-        tempAuthToken: createToken(),
+        tempAuthToken,
+        profile: payload.profile || {},
         nextAction: "register"
       };
     }
@@ -44,11 +51,26 @@ function createAuthService(app) {
 
   function register(payload) {
     const id = `usr_${crypto.randomUUID().slice(0, 8)}`;
-    const openId = payload.wechatOpenId;
+    let openId = payload.wechatOpenId;
+
+    if (!openId && payload.tempAuthToken) {
+      const tempAuth = db.prepare(`
+        SELECT token, wechat_open_id FROM temp_auth_sessions WHERE token = ?
+      `).get(payload.tempAuthToken);
+
+      if (tempAuth) {
+        openId = tempAuth.wechat_open_id;
+      }
+    }
+
     db.prepare(`
       INSERT INTO users (id, wechat_open_id, nickname, avatar_url, mobile, profile_status, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(id, openId, payload.nickname, payload.avatarUrl || "", payload.mobile, "completed", now());
+
+    if (payload.tempAuthToken) {
+      db.prepare("DELETE FROM temp_auth_sessions WHERE token = ?").run(payload.tempAuthToken);
+    }
 
     const user = db.prepare("SELECT * FROM users WHERE id = ?").get(id);
     const token = createToken();
