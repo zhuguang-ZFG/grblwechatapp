@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  frontend-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run frontend and contract tests
+        run: |
+          node tests/request.test.js
+          node tests/real-adapter.test.js
+          node tests/session.test.js
+          node tests/auth-page-guard.test.js
+          node tests/mock-project-list.test.js
+          node tests/project-formatters.test.js
+          node tests/status-formatters.test.js
+          node tests/task-detail-page.test.js
+          node tests/failure-code-contract.test.js
+          node tests/failure-contract-doc.test.js
+          node tests/failure-code-doc-sync.test.js
+
+  backend-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Run backend tests
+        run: npm test
