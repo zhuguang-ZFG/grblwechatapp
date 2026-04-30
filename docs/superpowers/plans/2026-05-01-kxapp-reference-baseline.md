@@ -101,6 +101,7 @@ Important current frontend facts:
 - first-level page modules now use corrected relative imports for `services/api` and shared utils
 - device selection from the device list now stores the full device object instead of only a raw device id
 - request helper now surfaces backend `code`, `statusCode`, and payload on rejected API errors so page logic can branch on business errors
+- device list now highlights the currently selected device and formats `lastSeenAt` into a readable timestamp label
 
 ### 3.2 Backend
 

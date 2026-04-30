@@ -18,6 +18,22 @@ async function registerAndToken(app) {
   return response.json().token;
 }
 
+async function registerAndTokenWithOpenId(app, openId) {
+  const response = await app.inject({
+    method: "POST",
+    url: "/api/v1/auth/register",
+    payload: {
+      wechatOpenId: openId,
+      nickname: `User-${openId}`,
+      avatarUrl: "",
+      mobile: "13800000000",
+      agreeTerms: true
+    }
+  });
+
+  return response.json().token;
+}
+
 async function createProject(app, token, overrides = {}) {
   const processParams = Object.assign(
     { speed: 1000, power: 65, passes: 1, lineSpacing: 1.2 },
@@ -381,6 +397,85 @@ test("cancel rejects invalid terminal target", async () => {
 
   assert.equal(cancelResponse.statusCode, 409);
   assert.equal(cancelResponse.json().code, "invalid_cancel_target");
+
+  await app.close();
+});
+
+test("job endpoints reject cross-user access", async () => {
+  const { app } = createTestApp();
+  await app.ready();
+  const ownerToken = await registerAndTokenWithOpenId(app, "openid_owner");
+  const attackerToken = await registerAndTokenWithOpenId(app, "openid_attacker");
+  const projectId = await createProject(app, ownerToken);
+
+  const previewCreate = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectId}/preview`,
+    headers: {
+      authorization: `Bearer ${ownerToken}`
+    },
+    payload: {
+      forceRegenerate: true
+    }
+  });
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  const generationCreate = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectId}/generate`,
+    headers: {
+      authorization: `Bearer ${ownerToken}`
+    },
+    payload: {
+      previewId: previewCreate.json().previewId
+    }
+  });
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  const jobCreate = await app.inject({
+    method: "POST",
+    url: "/api/v1/jobs",
+    headers: {
+      authorization: `Bearer ${ownerToken}`
+    },
+    payload: {
+      projectId,
+      generationId: generationCreate.json().generationId,
+      deviceId: "dev_123",
+      executionMode: "offline_file"
+    }
+  });
+  const jobId = jobCreate.json().jobId;
+
+  const detailByAttacker = await app.inject({
+    method: "GET",
+    url: `/api/v1/jobs/${jobId}`,
+    headers: {
+      authorization: `Bearer ${attackerToken}`
+    }
+  });
+  assert.equal(detailByAttacker.statusCode, 404);
+  assert.equal(detailByAttacker.json().code, "job_not_found");
+
+  const cancelByAttacker = await app.inject({
+    method: "POST",
+    url: `/api/v1/jobs/${jobId}/cancel`,
+    headers: {
+      authorization: `Bearer ${attackerToken}`
+    }
+  });
+  assert.equal(cancelByAttacker.statusCode, 404);
+  assert.equal(cancelByAttacker.json().code, "job_not_found");
+
+  const retryByAttacker = await app.inject({
+    method: "POST",
+    url: `/api/v1/jobs/${jobId}/retry`,
+    headers: {
+      authorization: `Bearer ${attackerToken}`
+    }
+  });
+  assert.equal(retryByAttacker.statusCode, 404);
+  assert.equal(retryByAttacker.json().code, "job_not_found");
 
   await app.close();
 });

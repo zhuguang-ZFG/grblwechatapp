@@ -11,6 +11,15 @@ function parseFailure(value) {
 function createJobsService(app) {
   const db = app.db;
 
+  function getOwnedJobRow(userId, jobId) {
+    return db.prepare(`
+      SELECT jobs.*
+      FROM jobs
+      INNER JOIN projects ON projects.id = jobs.project_id
+      WHERE jobs.id = ? AND projects.owner_user_id = ?
+    `).get(jobId, userId);
+  }
+
   function createJob(userId, payload) {
     const project = db.prepare("SELECT * FROM projects WHERE id = ? AND owner_user_id = ?").get(payload.projectId, userId);
     const generation = db.prepare("SELECT * FROM generations WHERE id = ? AND project_id = ?").get(payload.generationId, payload.projectId);
@@ -72,8 +81,8 @@ function createJobsService(app) {
     };
   }
 
-  function getJob(jobId) {
-    const row = db.prepare("SELECT * FROM jobs WHERE id = ?").get(jobId);
+  function getJob(userId, jobId) {
+    const row = getOwnedJobRow(userId, jobId);
     if (!row) {
       return null;
     }
@@ -91,8 +100,8 @@ function createJobsService(app) {
     };
   }
 
-  function cancelJob(jobId) {
-    const row = db.prepare("SELECT * FROM jobs WHERE id = ?").get(jobId);
+  function cancelJob(userId, jobId) {
+    const row = getOwnedJobRow(userId, jobId);
     if (!row) {
       return null;
     }
@@ -110,11 +119,11 @@ function createJobsService(app) {
     db.prepare("INSERT INTO job_events (id, job_id, status, at) VALUES (?, ?, ?, ?)")
       .run(`${jobId}_canceled_${Date.now()}`, jobId, "canceled", now());
 
-    return getJob(jobId);
+    return getJob(userId, jobId);
   }
 
-  function retryJob(jobId) {
-    const row = db.prepare("SELECT * FROM jobs WHERE id = ?").get(jobId);
+  function retryJob(userId, jobId) {
+    const row = getOwnedJobRow(userId, jobId);
     if (!row) {
       return null;
     }
@@ -128,8 +137,7 @@ function createJobsService(app) {
       };
     }
 
-    const projectOwner = db.prepare("SELECT owner_user_id FROM projects WHERE id = ?").get(row.project_id);
-    return createJob(projectOwner.owner_user_id, {
+    return createJob(userId, {
       projectId: row.project_id,
       generationId: row.generation_id,
       deviceId: row.device_id

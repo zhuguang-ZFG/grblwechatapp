@@ -1,6 +1,6 @@
 const api = require("../../services/api");
 const pageAuth = require("../../utils/page-auth");
-const { formatDeviceStatus } = require("../../utils/status-formatters");
+const { formatDeviceStatus, formatDateTime } = require("../../utils/status-formatters");
 
 Page({
   data: {
@@ -11,10 +11,14 @@ Page({
     if (!pageAuth.requireAuth()) {
       return;
     }
+    const selectedDevice = api.getSelectedDevice ? api.getSelectedDevice() || {} : {};
     const result = await api.listDevices();
     const devices = result.items.map((item) => ({
       ...item,
-      onlineStatusLabel: formatDeviceStatus(item.onlineStatus)
+      onlineStatusLabel: formatDeviceStatus(item.onlineStatus),
+      lastSeenLabel: formatDateTime(item.lastSeenAt),
+      isSelected: item.id === selectedDevice.id,
+      selectedLabel: item.id === selectedDevice.id ? "当前设备" : ""
     }));
     this.setData({ devices });
   },

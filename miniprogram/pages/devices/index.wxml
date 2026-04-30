@@ -1,18 +1,23 @@
 <view class="screen stack">
   <view class="hero-panel stack">
     <text class="eyebrow">设备列表</text>
-    <text class="hero-title">先选当前要出单的设备，再把项目和任务往下接</text>
-    <text class="hero-copy">小程序里先做设备查看与切换，实时连接和协议交互继续交给网关侧处理。</text>
+    <text class="hero-title">先确认本次出单设备，再继续预览、生成和任务下发</text>
+    <text class="hero-copy">小程序先承接设备查看、切换与绑定；实时连接和协议执行仍由网关侧负责。</text>
   </view>
 
   <view wx:if="{{devices.length}}" class="card-list">
     <view wx:for="{{devices}}" wx:key="id" class="list-item device-card" bindtap="selectDevice" data-id="{{item.id}}">
       <view class="split">
-        <text class="item-title">{{item.name}}</text>
+        <view class="stack" style="gap: 8rpx;">
+          <view class="row" style="gap: 12rpx; align-items: center;">
+            <text class="item-title">{{item.name}}</text>
+            <text wx:if="{{item.isSelected}}" class="status-pill status-pill-accent">{{item.selectedLabel}}</text>
+          </view>
+          <text class="item-meta">{{item.model}}</text>
+        </view>
         <text class="status-pill {{item.onlineStatus === 'online' ? 'status-pill-accent' : ''}}">{{item.onlineStatusLabel}}</text>
       </view>
-      <view class="item-meta">{{item.model}}</view>
-      <view class="item-meta">最近心跳 {{item.lastSeenAt}}</view>
+      <view class="item-meta">最近心跳 {{item.lastSeenLabel}}</view>
     </view>
   </view>
   <view wx:else class="empty">还没有绑定设备。</view>
