@@ -9,6 +9,16 @@
     <picker mode="selector" range="{{filters}}" value="{{filterIndex}}" bindchange="onFilterChange">
       <view class="picker">当前筛选：{{filters[filterIndex]}}</view>
     </picker>
+    <picker mode="selector" range="{{failureCategoryFilters}}" value="{{failureCategoryIndex}}" bindchange="onFailureCategoryChange">
+      <view class="picker">失败分类：{{failureCategoryFilters[failureCategoryIndex]}}</view>
+    </picker>
+    <view wx:if="{{failedCategoryStats.length}}" class="stack">
+      <text class="item-meta">失败分类统计</text>
+      <view class="split" wx:for="{{failedCategoryStats}}" wx:key="key">
+        <text class="item-meta">{{item.label}}</text>
+        <text class="item-meta">{{item.count}}</text>
+      </view>
+    </view>
   </view>
 
   <view wx:if="{{jobs.length}}" class="card-list">
@@ -26,6 +36,7 @@
         <view class="progress-fill" style="width: {{item.progress.percent}}%;"></view>
       </view>
       <view wx:if="{{item.status === 'failed'}}" class="inline-actions">
+        <text wx:if="{{item.failureCategoryLabel}}" class="item-meta">分类：{{item.failureCategoryLabel}}</text>
         <button size="mini" class="secondary-btn" bindtap="retryJob" data-id="{{item.id}}" catchtap="retryJob">重试任务</button>
       </view>
     </view>

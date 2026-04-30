@@ -8,11 +8,16 @@
   <view wx:if="{{devices.length}}" class="card-list">
     <view wx:for="{{devices}}" wx:key="id" class="list-item device-card" bindtap="selectDevice" data-id="{{item.id}}">
       <view class="split">
-        <text class="item-title">{{item.name}}</text>
+        <view class="stack" style="gap: 8rpx;">
+          <view class="row" style="gap: 12rpx; align-items: center;">
+            <text class="item-title">{{item.name}}</text>
+            <text wx:if="{{item.isSelected}}" class="status-pill status-pill-accent">{{item.selectedLabel}}</text>
+          </view>
+          <text class="item-meta">{{item.model}}</text>
+        </view>
         <text class="status-pill {{item.onlineStatus === 'online' ? 'status-pill-accent' : ''}}">{{item.onlineStatusLabel}}</text>
       </view>
-      <view class="item-meta">{{item.model}}</view>
-      <view class="item-meta">最近心跳 {{item.lastSeenAt}}</view>
+      <view class="item-meta">最近心跳 {{item.lastSeenLabel}}</view>
     </view>
   </view>
   <view wx:else class="empty">还没有绑定设备。</view>

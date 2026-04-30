@@ -10,11 +10,11 @@ function registerJobRoutes(app) {
   });
 
   app.get("/api/v1/jobs", { preHandler: [app.authenticate] }, async (request) => {
-    return app.jobsService.listJobs(request.currentUser.id, request.query.status);
+    return app.jobsService.listJobs(request.currentUser.id, request.query.status, request.query.failureCategory);
   });
 
   app.get("/api/v1/jobs/:id", { preHandler: [app.authenticate] }, async (request, reply) => {
-    const job = app.jobsService.getJob(request.params.id);
+    const job = app.jobsService.getJob(request.currentUser.id, request.params.id);
     if (!job) {
       return sendError(reply, 404, "job_not_found", "Job was not found");
     }
@@ -22,7 +22,7 @@ function registerJobRoutes(app) {
   });
 
   app.post("/api/v1/jobs/:id/cancel", { preHandler: [app.authenticate] }, async (request, reply) => {
-    const job = app.jobsService.cancelJob(request.params.id);
+    const job = app.jobsService.cancelJob(request.currentUser.id, request.params.id);
     if (!job) {
       return sendError(reply, 404, "job_not_found", "Job was not found");
     }
@@ -33,7 +33,7 @@ function registerJobRoutes(app) {
   });
 
   app.post("/api/v1/jobs/:id/retry", { preHandler: [app.authenticate] }, async (request, reply) => {
-    const job = app.jobsService.retryJob(request.params.id);
+    const job = app.jobsService.retryJob(request.currentUser.id, request.params.id);
     if (!job) {
       return sendError(reply, 404, "job_not_found", "Job was not found");
     }

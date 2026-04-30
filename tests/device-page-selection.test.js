@@ -33,9 +33,25 @@ function loadDevicesPage() {
       async listDevices() {
         return {
           items: [
-            { id: "dev_123", name: "KX Laser A1", onlineStatus: "online", model: "esp32_grbl" }
+            {
+              id: "dev_123",
+              name: "KX Laser A1",
+              onlineStatus: "online",
+              model: "esp32_grbl",
+              lastSeenAt: "2026-05-01T10:08:00Z"
+            },
+            {
+              id: "dev_124",
+              name: "KX Laser B2",
+              onlineStatus: "offline",
+              model: "esp32_grbl",
+              lastSeenAt: "2026-05-01T09:00:00Z"
+            }
           ]
         };
+      },
+      getSelectedDevice() {
+        return { id: "dev_123" };
       },
       setSelectedDevice(device) {
         calls.selectedDevice = device;
@@ -61,6 +77,9 @@ function loadDevicesPage() {
     exports: {
       formatDeviceStatus(value) {
         return value;
+      },
+      formatDateTime(value) {
+        return value.replace("T", " ").replace("Z", "");
       }
     }
   };
@@ -74,14 +93,18 @@ async function run() {
   const { pageDefinition, calls } = loadDevicesPage();
   const ctx = {
     data: {
-      devices: [
-        { id: "dev_123", name: "KX Laser A1", onlineStatus: "online", model: "esp32_grbl" }
-      ]
+      devices: []
     },
     setData(patch) {
       this.data = Object.assign({}, this.data, patch);
     }
   };
+
+  await pageDefinition.onShow.call(ctx);
+  assert.strictEqual(ctx.data.devices[0].isSelected, true);
+  assert.strictEqual(ctx.data.devices[0].selectedLabel, "当前设备");
+  assert.strictEqual(ctx.data.devices[0].lastSeenLabel, "2026-05-01 10:08:00");
+  assert.strictEqual(ctx.data.devices[1].isSelected, false);
 
   pageDefinition.selectDevice.call(ctx, {
     currentTarget: {
@@ -95,7 +118,12 @@ async function run() {
     id: "dev_123",
     name: "KX Laser A1",
     onlineStatus: "online",
-    model: "esp32_grbl"
+    model: "esp32_grbl",
+    lastSeenAt: "2026-05-01T10:08:00Z",
+    onlineStatusLabel: "online",
+    lastSeenLabel: "2026-05-01 10:08:00",
+    isSelected: true,
+    selectedLabel: "当前设备"
   });
   assert.strictEqual(calls.toastTitle, "已切换设备");
 }

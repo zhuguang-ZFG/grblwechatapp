@@ -53,9 +53,17 @@ function formatJobStep(value) {
   return formatByMap(value, JOB_STEP_MAP);
 }
 
+function formatDateTime(value) {
+  if (!value) {
+    return "-";
+  }
+  return value.replace("T", " ").replace("Z", "");
+}
+
 module.exports = {
   formatJobStatus,
   formatDeviceStatus,
   formatPreviewStatus,
-  formatJobStep
+  formatJobStep,
+  formatDateTime
 };

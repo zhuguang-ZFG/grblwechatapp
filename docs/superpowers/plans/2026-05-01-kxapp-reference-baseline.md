@@ -105,6 +105,9 @@ Important current frontend facts:
 - task detail page now also resolves project/device names when auxiliary lookups are available
 - core device/task/project WXML copy has been normalized into readable Chinese text to reduce terminal-encoding confusion during maintenance
 - project list cards now include resolved device status alongside device name for quicker scan reading
+- device list now highlights the currently selected device and formats `lastSeenAt` into a readable timestamp label
+- task list now supports failure-category filtering and exposes failure-category summary counts for failed jobs
+- real adapter now includes project lifecycle actions for duplicate, archive, and delete
 
 ### 3.2 Backend
 
@@ -137,12 +140,17 @@ This is now part of the implementation baseline:
 
 - `/api/v1/jobs` is filtered by authenticated user ownership
 - `/api/v1/jobs?status=...` supports status filtering for page-level task tabs
-- fake worker tasks can emit structured failure payloads with `code`, `message`, and `retryable`
+- fake worker tasks can emit structured failure payloads with `code`, `message`, `retryable`, and `category`
 - current simulated failure code map includes:
   - `DEVICE_OFFLINE`
   - `DEVICE_BUSY`
   - `GATEWAY_TIMEOUT`
   - `PARAM_INVALID`
+- task list supports failure-category filtering by:
+  - `DEVICE`
+  - `GATEWAY`
+  - `PARAMETER`
+  - `UNKNOWN`
 - job action APIs now return operation-level `409` business errors for invalid retry/cancel targets:
   - `invalid_retry_target`
   - `invalid_cancel_target`
@@ -156,6 +164,18 @@ This was an important compatibility point and is now part of the baseline:
 - backend stores temp auth session from `/auth/wechat-login`
 - backend converts `tempAuthToken -> wechat_open_id` during `/auth/register`
 - repeat login with the same WeChat code path should then resolve to existing user flow instead of new user flow
+
+### 3.5 Project lifecycle operations
+
+This is now part of the implementation baseline:
+
+- `POST /api/v1/projects/:id/duplicate`
+- `POST /api/v1/projects/:id/archive`
+- `DELETE /api/v1/projects/:id`
+- mini program real adapter has matching methods:
+  - `duplicateProject(projectId)`
+  - `archiveProject(projectId)`
+  - `deleteProject(projectId)`
 
 ## 4. Current Verified Behavior
 
@@ -177,7 +197,7 @@ powershell -ExecutionPolicy Bypass -File ./scripts/test.ps1
 
 Expected current result:
 
-- 13 backend tests passing
+- 15 backend tests passing
 
 Covered behaviors:
 
@@ -189,11 +209,14 @@ Covered behaviors:
 - devices list
 - device bind updates device ownership/bind state
 - project create/detail
+- duplicate/archive/delete project lifecycle
 - preview/generation/job async flow
 - jobs list status filtering
+- jobs list failure-category filtering and failure summary counts
 - structured job failure payload with retryable flag
 - invalid retry target returns `409`
 - invalid cancel target returns `409`
+- job endpoints reject cross-user access
 
 ### 4.2 Frontend node-side tests
 
@@ -213,10 +236,7 @@ node tests/page-module-imports.test.js
 node tests/failure-code-contract.test.js
 node tests/failure-code-doc-sync.test.js
 node tests/failure-contract-doc.test.js
-node tests/workspace-page.test.js
 node tests/tasks-page.test.js
-node tests/task-detail-page.test.js
-node tests/projects-page.test.js
 ```
 
 Expected current result:
@@ -255,10 +275,10 @@ Important pushed commits:
   - register flow aligned with temp auth token
 - `9811bb3`
   - docs freeze kxapp migration reference baseline
-- `6125cd5`
-  - task failure handling, device bind sync, failure code spec, and verification refresh
+- `d304be9`
+  - failure categories, project lifecycle actions, and task filtering on `split/harden-errors-and-ci`
 
-If a future session needs a quick orientation point, treat `6125cd5` as the latest known integrated baseline.
+If a future session needs a quick orientation point, treat `d304be9` as the latest known integrated baseline from the feature branch before merge.
 
 ## 6. Known Gaps Still Open
 

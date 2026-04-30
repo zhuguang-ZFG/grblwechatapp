@@ -24,6 +24,30 @@ function registerProjectsRoutes(app) {
     }
     return project;
   });
+
+  app.post("/api/v1/projects/:id/duplicate", { preHandler: [app.authenticate] }, async (request, reply) => {
+    const project = app.projectsService.duplicateProject(request.currentUser.id, request.params.id);
+    if (!project) {
+      return sendError(reply, 404, "project_not_found", "Project was not found");
+    }
+    return project;
+  });
+
+  app.post("/api/v1/projects/:id/archive", { preHandler: [app.authenticate] }, async (request, reply) => {
+    const project = app.projectsService.archiveProject(request.currentUser.id, request.params.id);
+    if (!project) {
+      return sendError(reply, 404, "project_not_found", "Project was not found");
+    }
+    return project;
+  });
+
+  app.delete("/api/v1/projects/:id", { preHandler: [app.authenticate] }, async (request, reply) => {
+    const result = app.projectsService.deleteProject(request.currentUser.id, request.params.id);
+    if (!result) {
+      return sendError(reply, 404, "project_not_found", "Project was not found");
+    }
+    return result;
+  });
 }
 
 module.exports = {

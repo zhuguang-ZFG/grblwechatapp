@@ -165,6 +165,7 @@ async function run() {
       progress: { currentStep: "running", percent: 62 },
       failure: {
         code: "DEVICE_OFFLINE",
+        category: "DEVICE",
         message: "device heartbeat missing",
         retryable: true
       },
@@ -179,6 +180,7 @@ async function run() {
   };
   await failedJob.pageDefinition.refreshJob.call(refreshCtx);
   assert.strictEqual(refreshCtx.data.job.failureSuggestion, "设备当前离线，请检查设备通电与网络连接后再重试。");
+  assert.strictEqual(refreshCtx.data.job.failureCategoryLabel, "设备问题");
   assert.strictEqual(refreshCtx.data.canRetry, true);
   assert.strictEqual(refreshCtx.data.job.projectName, "Project A");
   assert.strictEqual(refreshCtx.data.job.deviceName, "KX Laser A1");
@@ -192,6 +194,7 @@ async function run() {
       progress: { currentStep: "dispatching", percent: 24 },
       failure: {
         code: "GATEWAY_TIMEOUT",
+        category: "GATEWAY",
         message: "gateway timeout",
         retryable: true
       },
@@ -216,6 +219,7 @@ async function run() {
       progress: { currentStep: "running", percent: 80 },
       failure: {
         code: "PARAM_INVALID",
+        category: "PARAMETER",
         message: "invalid process params",
         retryable: false
       },

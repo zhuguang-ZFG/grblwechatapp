@@ -10,9 +10,16 @@ function loadTasksPage() {
   delete require.cache[pagePath];
 
   let pageDefinition = null;
+  const calls = {
+    listJobsArgs: []
+  };
 
   global.Page = (definition) => {
     pageDefinition = definition;
+  };
+
+  global.wx = {
+    navigateTo() {}
   };
 
   require.cache[apiPath] = {
@@ -20,17 +27,28 @@ function loadTasksPage() {
     filename: apiPath,
     loaded: true,
     exports: {
-      async listJobs() {
+      async listJobs(status, failureCategory) {
+        calls.listJobsArgs.push([status, failureCategory]);
         return {
           items: [
             {
               id: "job_1",
               projectId: "prj_1",
               deviceId: "dev_123",
-              status: "running",
-              progress: { currentStep: "running", percent: 65 }
+              status: "failed",
+              progress: { currentStep: "dispatching", percent: 12 },
+              failure: {
+                code: "DEVICE_OFFLINE",
+                category: "DEVICE"
+              }
             }
-          ]
+          ],
+          summary: {
+            totalFailed: 1,
+            failedByCategory: {
+              DEVICE: 1
+            }
+          }
         };
       },
       async listProjects() {
@@ -74,15 +92,21 @@ function loadTasksPage() {
   };
 
   require(pagePath);
-  return pageDefinition;
+  return { pageDefinition, calls };
 }
 
 async function run() {
-  const pageDefinition = loadTasksPage();
+  const { pageDefinition, calls } = loadTasksPage();
   const ctx = {
     data: {
-      filterIndex: 0,
-      filterValues: ["all"]
+      filters: ["全部", "排队中", "运行中", "失败", "已完成"],
+      filterValues: ["all", "queued", "running", "failed", "completed"],
+      filterIndex: 3,
+      failureCategoryFilters: ["全部分类", "设备问题", "网关问题", "参数问题", "未知问题"],
+      failureCategoryValues: ["all", "DEVICE", "GATEWAY", "PARAMETER", "UNKNOWN"],
+      failureCategoryIndex: 1,
+      jobs: [],
+      failedCategoryStats: []
     },
     setData(patch) {
       this.data = Object.assign({}, this.data, patch);
@@ -91,8 +115,12 @@ async function run() {
 
   await pageDefinition.loadJobs.call(ctx);
 
+  assert.deepStrictEqual(calls.listJobsArgs[0], ["failed", "DEVICE"]);
   assert.strictEqual(ctx.data.jobs[0].projectName, "Project A");
   assert.strictEqual(ctx.data.jobs[0].deviceName, "KX Laser A1");
+  assert.strictEqual(ctx.data.jobs[0].failureCategoryLabel, "设备问题");
+  assert.strictEqual(ctx.data.failedCategoryStats[0].label, "设备问题");
+  assert.strictEqual(ctx.data.failedCategoryStats[0].count, 1);
 }
 
 run().catch((error) => {
