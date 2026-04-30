@@ -119,6 +119,27 @@ module.exports = {
     });
   },
 
+  duplicateProject(projectId) {
+    return request({
+      url: `/projects/${projectId}/duplicate`,
+      method: "POST"
+    });
+  },
+
+  archiveProject(projectId) {
+    return request({
+      url: `/projects/${projectId}/archive`,
+      method: "POST"
+    });
+  },
+
+  deleteProject(projectId) {
+    return request({
+      url: `/projects/${projectId}`,
+      method: "DELETE"
+    });
+  },
+
   createPreview(projectId) {
     return request({
       url: `/projects/${projectId}/preview`,
@@ -151,9 +172,16 @@ module.exports = {
     });
   },
 
-  listJobs(status) {
+  listJobs(status, failureCategory) {
+    const query = [];
+    if (status && status !== "all") {
+      query.push(`status=${encodeURIComponent(status)}`);
+    }
+    if (failureCategory && failureCategory !== "all") {
+      query.push(`failureCategory=${encodeURIComponent(failureCategory)}`);
+    }
     return request({
-      url: `/jobs${status && status !== "all" ? `?status=${status}` : ""}`
+      url: `/jobs${query.length ? `?${query.join("&")}` : ""}`
     });
   },
 

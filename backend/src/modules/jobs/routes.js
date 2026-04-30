@@ -10,7 +10,7 @@ function registerJobRoutes(app) {
   });
 
   app.get("/api/v1/jobs", { preHandler: [app.authenticate] }, async (request) => {
-    return app.jobsService.listJobs(request.currentUser.id, request.query.status);
+    return app.jobsService.listJobs(request.currentUser.id, request.query.status, request.query.failureCategory);
   });
 
   app.get("/api/v1/jobs/:id", { preHandler: [app.authenticate] }, async (request, reply) => {

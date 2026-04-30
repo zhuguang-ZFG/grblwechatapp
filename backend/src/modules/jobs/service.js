@@ -49,35 +49,59 @@ function createJobsService(app) {
     };
   }
 
-  function listJobs(userId, status) {
-    const rows = status && status !== "all"
-      ? db.prepare(`
-          SELECT jobs.*
-          FROM jobs
-          INNER JOIN projects ON projects.id = jobs.project_id
-          WHERE projects.owner_user_id = ? AND jobs.status = ?
-          ORDER BY jobs.updated_at DESC
-        `).all(userId, status)
-      : db.prepare(`
-          SELECT jobs.*
-          FROM jobs
-          INNER JOIN projects ON projects.id = jobs.project_id
-          WHERE projects.owner_user_id = ?
-          ORDER BY jobs.updated_at DESC
-        `).all(userId);
+  function listJobs(userId, status, failureCategory) {
+    const hasStatusFilter = status && status !== "all";
+    const hasFailureCategoryFilter = failureCategory && failureCategory !== "all";
 
-    return {
-      items: rows.map((row) => ({
+    let sql = `
+      SELECT jobs.*
+      FROM jobs
+      INNER JOIN projects ON projects.id = jobs.project_id
+      WHERE projects.owner_user_id = ?
+    `;
+    const params = [userId];
+
+    if (hasStatusFilter) {
+      sql += " AND jobs.status = ?";
+      params.push(status);
+    }
+
+    if (hasFailureCategoryFilter) {
+      sql += " AND jobs.failure_json LIKE ?";
+      params.push(`%"category":"${failureCategory}"%`);
+    }
+
+    sql += " ORDER BY jobs.updated_at DESC";
+    const rows = db.prepare(sql).all(...params);
+
+    const items = rows.map((row) => ({
         id: row.id,
         projectId: row.project_id,
         deviceId: row.device_id,
         status: row.status,
         progress: JSON.parse(row.progress_json),
+        failure: parseFailure(row.failure_json),
         updatedAt: row.updated_at
-      })),
+      }));
+
+    const failedByCategory = items.reduce((acc, item) => {
+      if (item.status !== "failed" || !item.failure || !item.failure.category) {
+        return acc;
+      }
+      const key = item.failure.category;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    return {
+      items,
       page: 1,
       pageSize: rows.length,
-      total: rows.length
+      total: rows.length,
+      summary: {
+        totalFailed: items.filter((item) => item.status === "failed").length,
+        failedByCategory
+      }
     };
   }
 

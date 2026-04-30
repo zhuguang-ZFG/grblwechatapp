@@ -181,6 +181,48 @@ test("job list respects status filter for authenticated user", async () => {
     }
   });
 
+  const failedProjectId = await createProject(app, token, {
+    processParams: {
+      simulateFailureCode: "DEVICE_OFFLINE"
+    }
+  });
+  const failedPreviewCreate = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${failedProjectId}/preview`,
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      forceRegenerate: true
+    }
+  });
+  await new Promise((resolve) => setTimeout(resolve, 80));
+  const failedGenerationCreate = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${failedProjectId}/generate`,
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      previewId: failedPreviewCreate.json().previewId
+    }
+  });
+  await new Promise((resolve) => setTimeout(resolve, 80));
+  await app.inject({
+    method: "POST",
+    url: "/api/v1/jobs",
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      projectId: failedProjectId,
+      generationId: failedGenerationCreate.json().generationId,
+      deviceId: "dev_123",
+      executionMode: "offline_file"
+    }
+  });
+  await new Promise((resolve) => setTimeout(resolve, 180));
+
   const runningList = await app.inject({
     method: "GET",
     url: "/api/v1/jobs?status=running",
@@ -197,9 +239,22 @@ test("job list respects status filter for authenticated user", async () => {
     }
   });
 
+  const failedDeviceCategoryList = await app.inject({
+    method: "GET",
+    url: "/api/v1/jobs?status=failed&failureCategory=DEVICE",
+    headers: {
+      authorization: `Bearer ${token}`
+    }
+  });
+
   assert.equal(runningList.statusCode, 200);
   assert.equal(Array.isArray(runningList.json().items), true);
   assert.equal(Array.isArray(queuedList.json().items), true);
+  assert.equal(Array.isArray(failedDeviceCategoryList.json().items), true);
+  assert.equal(failedDeviceCategoryList.json().items.length >= 1, true);
+  assert.equal(failedDeviceCategoryList.json().items[0].failure.category, "DEVICE");
+  assert.equal(failedDeviceCategoryList.json().summary.failedByCategory.DEVICE >= 1, true);
+  assert.equal(typeof failedDeviceCategoryList.json().summary.totalFailed, "number");
 
   await app.close();
 });
@@ -267,6 +322,7 @@ test("job flow stores structured failure and retryable flag", async () => {
   assert.equal(jobDetail.statusCode, 200);
   assert.equal(jobDetail.json().status, "failed");
   assert.equal(jobDetail.json().failure.code, "DEVICE_OFFLINE");
+  assert.equal(jobDetail.json().failure.category, "DEVICE");
   assert.equal(jobDetail.json().failure.retryable, true);
   assert.equal(typeof jobDetail.json().failure.message, "string");
 

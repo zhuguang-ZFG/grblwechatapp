@@ -11,11 +11,25 @@ const FAILURE_SUGGESTION_MAP = {
   PARAM_INVALID: "参数配置无效，请调整加工参数后重新提交任务。"
 };
 
+const FAILURE_CATEGORY_MAP = {
+  DEVICE: "设备问题",
+  GATEWAY: "网关问题",
+  PARAMETER: "参数问题",
+  UNKNOWN: "未知问题"
+};
+
 function getFailureSuggestion(failure) {
   if (!failure || !failure.code) {
     return "";
   }
   return FAILURE_SUGGESTION_MAP[failure.code] || "可先刷新状态并检查设备与项目参数，再尝试重试任务。";
+}
+
+function getFailureCategoryLabel(failure) {
+  if (!failure || !failure.category) {
+    return "";
+  }
+  return FAILURE_CATEGORY_MAP[failure.category] || failure.category;
 }
 
 function confirmAction({ title, content }) {
@@ -74,6 +88,7 @@ Page({
       statusLabel: formatJobStatus(rawJob.status),
       stepLabel: formatJobStep(rawJob.progress.currentStep),
       failureSuggestion: getFailureSuggestion(rawJob.failure),
+      failureCategoryLabel: getFailureCategoryLabel(rawJob.failure),
       timeline: rawJob.timeline.map((item) => ({
         ...item,
         statusLabel: formatJobStatus(item.status)
@@ -154,6 +169,7 @@ Page({
 if (typeof module !== "undefined") {
   module.exports = {
     FAILURE_SUGGESTION_MAP,
-    getFailureSuggestion
+    getFailureSuggestion,
+    getFailureCategoryLabel
   };
 }

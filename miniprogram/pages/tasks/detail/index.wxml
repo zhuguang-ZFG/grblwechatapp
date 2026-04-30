@@ -30,6 +30,7 @@
 
   <view wx:if="{{job.failure}}" class="section stack">
     <text class="section-title">失败原因</text>
+    <text wx:if="{{job.failureCategoryLabel}}" class="item-meta">错误分类：{{job.failureCategoryLabel}}</text>
     <text>{{job.failure.message}}</text>
     <text class="muted">{{job.failure.code}}</text>
     <text wx:if="{{job.failureSuggestion}}" class="item-meta">重试建议：{{job.failureSuggestion}}</text>

@@ -95,6 +95,21 @@ async function run() {
     id: "dev_124",
     name: "KX Laser B2"
   });
+
+  await adapter.listJobs("failed", "DEVICE");
+  assert.strictEqual(recordedRequests[5].url, "/jobs?status=failed&failureCategory=DEVICE");
+
+  await adapter.duplicateProject("prj_1");
+  assert.strictEqual(recordedRequests[6].url, "/projects/prj_1/duplicate");
+  assert.strictEqual(recordedRequests[6].method, "POST");
+
+  await adapter.archiveProject("prj_1");
+  assert.strictEqual(recordedRequests[7].url, "/projects/prj_1/archive");
+  assert.strictEqual(recordedRequests[7].method, "POST");
+
+  await adapter.deleteProject("prj_1");
+  assert.strictEqual(recordedRequests[8].url, "/projects/prj_1");
+  assert.strictEqual(recordedRequests[8].method, "DELETE");
 }
 
 run().catch((error) => {

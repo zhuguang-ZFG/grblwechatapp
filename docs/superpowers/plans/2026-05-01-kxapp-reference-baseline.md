@@ -102,6 +102,8 @@ Important current frontend facts:
 - device selection from the device list now stores the full device object instead of only a raw device id
 - request helper now surfaces backend `code`, `statusCode`, and payload on rejected API errors so page logic can branch on business errors
 - device list now highlights the currently selected device and formats `lastSeenAt` into a readable timestamp label
+- task list now supports failure-category filtering and exposes failure-category summary counts for failed jobs
+- real adapter now includes project lifecycle actions for duplicate, archive, and delete
 
 ### 3.2 Backend
 
@@ -135,6 +137,7 @@ This is now part of the implementation baseline:
 - `/api/v1/jobs` is filtered by authenticated user ownership
 - `/api/v1/jobs?status=...` supports status filtering for page-level task tabs
 - fake worker tasks can emit structured failure payloads with `code`, `message`, and `retryable`
+- failure payloads now also include a stable `category` field used by task filtering and detail display
 - current simulated failure code map includes:
   - `DEVICE_OFFLINE`
   - `DEVICE_BUSY`
@@ -153,6 +156,18 @@ This was an important compatibility point and is now part of the baseline:
 - backend stores temp auth session from `/auth/wechat-login`
 - backend converts `tempAuthToken -> wechat_open_id` during `/auth/register`
 - repeat login with the same WeChat code path should then resolve to existing user flow instead of new user flow
+
+### 3.5 Project lifecycle operations
+
+This is now part of the implementation baseline:
+
+- `POST /api/v1/projects/:id/duplicate`
+- `POST /api/v1/projects/:id/archive`
+- `DELETE /api/v1/projects/:id`
+- mini program real adapter has matching methods:
+  - `duplicateProject(projectId)`
+  - `archiveProject(projectId)`
+  - `deleteProject(projectId)`
 
 ## 4. Current Verified Behavior
 
@@ -174,7 +189,7 @@ powershell -ExecutionPolicy Bypass -File ./scripts/test.ps1
 
 Expected current result:
 
-- 13 backend tests passing
+- 15 backend tests passing
 
 Covered behaviors:
 
@@ -186,8 +201,10 @@ Covered behaviors:
 - devices list
 - device bind updates device ownership/bind state
 - project create/detail
+- duplicate/archive/delete project lifecycle
 - preview/generation/job async flow
 - jobs list status filtering
+- jobs list failure-category filtering and failure summary counts
 - structured job failure payload with retryable flag
 - invalid retry target returns `409`
 - invalid cancel target returns `409`
@@ -210,6 +227,7 @@ node tests/page-module-imports.test.js
 node tests/failure-code-contract.test.js
 node tests/failure-code-doc-sync.test.js
 node tests/failure-contract-doc.test.js
+node tests/tasks-page.test.js
 ```
 
 Expected current result:
@@ -248,10 +266,10 @@ Important pushed commits:
   - register flow aligned with temp auth token
 - `9811bb3`
   - docs freeze kxapp migration reference baseline
-- `6125cd5`
-  - task failure handling, device bind sync, failure code spec, and verification refresh
+- `a89f200`
+  - job access control, failure category filtering, device selection display, and project lifecycle actions
 
-If a future session needs a quick orientation point, treat `6125cd5` as the latest known integrated baseline.
+If a future session needs a quick orientation point, treat `a89f200` as the latest known integrated baseline on `split/harden-errors-and-ci`.
 
 ## 6. Known Gaps Still Open
 

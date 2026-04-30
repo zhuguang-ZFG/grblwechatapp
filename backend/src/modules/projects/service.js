@@ -109,11 +109,52 @@ function createProjectsService(app) {
     return getProject(userId, projectId);
   }
 
+  function duplicateProject(userId, projectId) {
+    const existing = getProject(userId, projectId);
+    if (!existing) {
+      return null;
+    }
+    const duplicated = createProject(userId, {
+      name: `${existing.name} Copy`,
+      sourceType: existing.sourceType,
+      selectedDeviceId: existing.selectedDeviceId,
+      content: existing.content,
+      layout: existing.layout,
+      processParams: existing.processParams
+    });
+    return getProject(userId, duplicated.id);
+  }
+
+  function archiveProject(userId, projectId) {
+    const existing = getProject(userId, projectId);
+    if (!existing) {
+      return null;
+    }
+    db.prepare(`
+      UPDATE projects
+      SET status = ?, updated_at = ?
+      WHERE id = ? AND owner_user_id = ?
+    `).run("archived", now(), projectId, userId);
+    return getProject(userId, projectId);
+  }
+
+  function deleteProject(userId, projectId) {
+    const existing = getProject(userId, projectId);
+    if (!existing) {
+      return null;
+    }
+    db.prepare("DELETE FROM projects WHERE id = ? AND owner_user_id = ?").run(projectId, userId);
+    return { deleted: true };
+  }
+
   return {
     createProject,
     listProjects,
     getProject,
-    updateProject
+    updateProject,
+    duplicateProject,
+    archiveProject,
+    deleteProject
   };
 }
 
