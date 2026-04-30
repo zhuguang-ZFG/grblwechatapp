@@ -1,6 +1,6 @@
-const api = require("../../../services/api");
-const pageAuth = require("../../../utils/page-auth");
-const { formatJobStatus, formatJobStep } = require("../../../utils/status-formatters");
+const api = require("../../services/api");
+const pageAuth = require("../../utils/page-auth");
+const { formatJobStatus, formatJobStep } = require("../../utils/status-formatters");
 
 Page({
   data: {

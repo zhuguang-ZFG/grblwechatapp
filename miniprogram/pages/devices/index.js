@@ -1,6 +1,6 @@
-const api = require("../../../services/api");
-const pageAuth = require("../../../utils/page-auth");
-const { formatDeviceStatus } = require("../../../utils/status-formatters");
+const api = require("../../services/api");
+const pageAuth = require("../../utils/page-auth");
+const { formatDeviceStatus } = require("../../utils/status-formatters");
 
 Page({
   data: {
@@ -20,7 +20,11 @@ Page({
   },
 
   selectDevice(event) {
-    api.setSelectedDevice(event.currentTarget.dataset.id);
+    const device = this.data.devices.find((item) => item.id === event.currentTarget.dataset.id);
+    if (!device) {
+      return;
+    }
+    api.setSelectedDevice(device);
     wx.showToast({ title: "已切换设备", icon: "success" });
   },
 

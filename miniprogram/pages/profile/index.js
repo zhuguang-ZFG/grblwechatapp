@@ -1,6 +1,6 @@
-const api = require("../../../services/api");
-const pageAuth = require("../../../utils/page-auth");
-const session = require("../../../utils/session");
+const api = require("../../services/api");
+const pageAuth = require("../../utils/page-auth");
+const session = require("../../utils/session");
 
 Page({
   data: {

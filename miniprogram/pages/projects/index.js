@@ -1,10 +1,10 @@
-const api = require("../../../services/api");
-const pageAuth = require("../../../utils/page-auth");
+const api = require("../../services/api");
+const pageAuth = require("../../utils/page-auth");
 const {
   formatProjectType,
   formatProjectUpdatedAt,
   formatArtifactState
-} = require("../../../utils/project-formatters");
+} = require("../../utils/project-formatters");
 
 Page({
   data: {

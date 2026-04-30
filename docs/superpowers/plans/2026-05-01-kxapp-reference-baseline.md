@@ -98,6 +98,8 @@ Important current frontend facts:
 - real adapter is in `miniprogram/services/api/real-adapter.js`
 - device bind success now refreshes the device list and writes the newly bound device into local selected-device storage
 - task detail page now exposes failure reason, retryability, retry suggestions, and guarded cancel/retry confirmation flows
+- first-level page modules now use corrected relative imports for `services/api` and shared utils
+- device selection from the device list now stores the full device object instead of only a raw device id
 
 ### 3.2 Backend
 
@@ -189,6 +191,8 @@ node tests/mock-project-list.test.js
 node tests/project-formatters.test.js
 node tests/status-formatters.test.js
 node tests/task-detail-page.test.js
+node tests/device-page-selection.test.js
+node tests/page-module-imports.test.js
 ```
 
 Expected current result:

@@ -445,8 +445,11 @@ async function cancelJob(jobId) {
   return clone(job);
 }
 
-function setSelectedDevice(deviceId) {
-  state.selectedDeviceId = deviceId;
+function setSelectedDevice(device) {
+  if (!device) {
+    return;
+  }
+  state.selectedDeviceId = typeof device === "string" ? device : device.id;
 }
 
 module.exports = {

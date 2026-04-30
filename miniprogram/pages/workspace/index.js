@@ -1,6 +1,6 @@
-const api = require("../../../services/api");
-const pageAuth = require("../../../utils/page-auth");
-const { formatDeviceStatus } = require("../../../utils/status-formatters");
+const api = require("../../services/api");
+const pageAuth = require("../../utils/page-auth");
+const { formatDeviceStatus } = require("../../utils/status-formatters");
 
 Page({
   data: {
@@ -12,7 +12,7 @@ Page({
     if (!pageAuth.requireAuth()) {
       return;
     }
-    const rawDevice = api.getSelectedDevice();
+    const rawDevice = api.getSelectedDevice() || {};
     const currentDevice = {
       ...rawDevice,
       onlineStatusLabel: formatDeviceStatus(rawDevice.onlineStatus)
