@@ -104,6 +104,7 @@ Important current frontend facts:
 - workspace recent projects and task cards now prefer resolved project/device names instead of exposing raw ids directly
 - task detail page now also resolves project/device names when auxiliary lookups are available
 - core device/task/project WXML copy has been normalized into readable Chinese text to reduce terminal-encoding confusion during maintenance
+- project list cards now include resolved device status alongside device name for quicker scan reading
 
 ### 3.2 Backend
 
@@ -215,6 +216,7 @@ node tests/failure-contract-doc.test.js
 node tests/workspace-page.test.js
 node tests/tasks-page.test.js
 node tests/task-detail-page.test.js
+node tests/projects-page.test.js
 ```
 
 Expected current result:

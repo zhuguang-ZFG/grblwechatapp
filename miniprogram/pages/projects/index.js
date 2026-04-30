@@ -5,6 +5,7 @@ const {
   formatProjectUpdatedAt,
   formatArtifactState
 } = require("../../utils/project-formatters");
+const { formatDeviceStatus } = require("../../utils/status-formatters");
 
 Page({
   data: {
@@ -34,7 +35,7 @@ Page({
       : allProjects.filter((item) => item.sourceType === filter);
 
     const devices = await api.listDevices();
-    const deviceMap = Object.fromEntries(devices.items.map((item) => [item.id, item.name]));
+    const deviceMap = Object.fromEntries(devices.items.map((item) => [item.id, item]));
 
     const projects = filtered.map((item) => ({
       ...item,
@@ -42,7 +43,8 @@ Page({
       updatedAtLabel: formatProjectUpdatedAt(item.updatedAt),
       previewStateLabel: formatArtifactState(item.latestPreviewId),
       generationStateLabel: formatArtifactState(item.latestGenerationId),
-      deviceName: deviceMap[item.selectedDeviceId] || item.selectedDeviceId || "未选择设备"
+      deviceName: deviceMap[item.selectedDeviceId]?.name || item.selectedDeviceId || "未选择设备",
+      deviceStatusLabel: formatDeviceStatus(deviceMap[item.selectedDeviceId]?.onlineStatus)
     }));
 
     this.setData({ projects });

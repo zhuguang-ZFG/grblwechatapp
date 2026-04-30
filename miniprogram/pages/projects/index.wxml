@@ -29,6 +29,7 @@
         <view class="project-meta-block">
           <text class="project-meta-label">设备</text>
           <text class="project-meta-value">{{item.deviceName}}</text>
+          <text class="item-meta">{{item.deviceStatusLabel}}</text>
         </view>
         <view class="project-meta-block">
           <text class="project-meta-label">预览</text>
