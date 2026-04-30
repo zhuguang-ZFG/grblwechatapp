@@ -17,7 +17,7 @@
         <text class="item-title">{{item.id}}</text>
         <text class="status-pill {{item.status === 'running' ? 'status-pill-accent' : ''}}">{{item.statusLabel}}</text>
       </view>
-      <view class="item-meta">项目 {{item.projectId}} · 设备 {{item.deviceId}}</view>
+      <view class="item-meta">项目 {{item.projectName}} · 设备 {{item.deviceName}}</view>
       <view class="split">
         <text class="item-meta">{{item.stepLabel}}</text>
         <text class="item-meta">{{item.progress.percent}}%</text>

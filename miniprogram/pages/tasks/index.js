@@ -25,8 +25,16 @@ Page({
   async loadJobs() {
     const filter = this.data.filterValues[this.data.filterIndex];
     const result = await api.listJobs(filter);
+    const [projects, devices] = await Promise.all([
+      api.listProjects(),
+      api.listDevices()
+    ]);
+    const projectMap = Object.fromEntries((projects || []).map((item) => [item.id, item.name]));
+    const deviceMap = Object.fromEntries(((devices && devices.items) || []).map((item) => [item.id, item.name]));
     const jobs = result.items.map((item) => ({
       ...item,
+      projectName: projectMap[item.projectId] || item.projectId,
+      deviceName: deviceMap[item.deviceId] || item.deviceId,
       statusLabel: formatJobStatus(item.status),
       stepLabel: formatJobStep(item.progress.currentStep)
     }));

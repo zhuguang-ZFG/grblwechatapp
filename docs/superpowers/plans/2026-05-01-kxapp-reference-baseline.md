@@ -101,6 +101,7 @@ Important current frontend facts:
 - first-level page modules now use corrected relative imports for `services/api` and shared utils
 - device selection from the device list now stores the full device object instead of only a raw device id
 - request helper now surfaces backend `code`, `statusCode`, and payload on rejected API errors so page logic can branch on business errors
+- workspace recent projects and task cards now prefer resolved project/device names instead of exposing raw ids directly
 
 ### 3.2 Backend
 
@@ -209,6 +210,8 @@ node tests/page-module-imports.test.js
 node tests/failure-code-contract.test.js
 node tests/failure-code-doc-sync.test.js
 node tests/failure-contract-doc.test.js
+node tests/workspace-page.test.js
+node tests/tasks-page.test.js
 ```
 
 Expected current result:

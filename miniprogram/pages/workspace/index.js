@@ -18,7 +18,12 @@ Page({
       onlineStatusLabel: formatDeviceStatus(rawDevice.onlineStatus)
     };
     const allProjects = await api.listProjects();
-    const projects = allProjects.slice(0, 3);
+    const devices = await api.listDevices();
+    const deviceMap = Object.fromEntries((devices.items || []).map((item) => [item.id, item.name]));
+    const projects = allProjects.slice(0, 3).map((item) => ({
+      ...item,
+      deviceName: deviceMap[item.selectedDeviceId] || "待选择设备"
+    }));
     this.setData({ currentDevice, projects });
   },
 
