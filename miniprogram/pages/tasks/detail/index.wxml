@@ -32,6 +32,8 @@
     <text class="section-title">失败原因</text>
     <text>{{job.failure.message}}</text>
     <text class="muted">{{job.failure.code}}</text>
+    <text wx:if="{{job.failureSuggestion}}" class="item-meta">重试建议：{{job.failureSuggestion}}</text>
+    <text wx:if="{{retryHint}}" class="item-meta">{{retryHint}}</text>
   </view>
 
   <view class="fixed-cta stack">
@@ -39,7 +41,23 @@
       <button class="ghost-btn" bindtap="refreshJob">刷新状态</button>
       <button class="secondary-btn" bindtap="viewProject">查看项目</button>
     </view>
-    <button wx:if="{{canCancel}}" class="danger-btn" bindtap="cancelJob">取消任务</button>
-    <button wx:if="{{canRetry}}" class="primary-btn" bindtap="retryJob">重试任务</button>
+    <button
+      wx:if="{{canCancel}}"
+      class="danger-btn"
+      bindtap="cancelJob"
+      loading="{{actionLoading && actionKind === 'cancel'}}"
+      disabled="{{actionLoading}}"
+    >
+      取消任务
+    </button>
+    <button
+      wx:if="{{canRetry}}"
+      class="primary-btn"
+      bindtap="retryJob"
+      loading="{{actionLoading && actionKind === 'retry'}}"
+      disabled="{{actionLoading}}"
+    >
+      重试任务
+    </button>
   </view>
 </view>

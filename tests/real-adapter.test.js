@@ -21,8 +21,19 @@ require.cache[requestModulePath] = {
           total: 1
         });
       }
-      if (options.url.startsWith("/jobs")) {
+  if (options.url.startsWith("/jobs")) {
         return Promise.resolve({ items: [] });
+      }
+      if (options.url === "/devices/bind") {
+        return Promise.resolve({ deviceId: "dev_124", bindStatus: "bound" });
+      }
+      if (options.url === "/devices") {
+        return Promise.resolve({
+          items: [
+            { id: "dev_123", name: "KX Laser A1" },
+            { id: "dev_124", name: "KX Laser B2" }
+          ]
+        });
       }
       return Promise.resolve({});
     }
@@ -77,6 +88,13 @@ async function run() {
   };
   adapter.setSelectedDevice(selected);
   assert.deepStrictEqual(adapter.getSelectedDevice(), selected);
+
+  const bindResult = await adapter.bindDevice("EFGH5678");
+  assert.strictEqual(bindResult.bindStatus, "bound");
+  assert.deepStrictEqual(global.wx._storage.selectedDevice, {
+    id: "dev_124",
+    name: "KX Laser B2"
+  });
 }
 
 run().catch((error) => {

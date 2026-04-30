@@ -79,6 +79,13 @@ module.exports = {
       url: "/devices/bind",
       method: "POST",
       data: { bindingCode }
+    }).then(async (result) => {
+      const devices = await this.listDevices();
+      const selectedDevice = (devices.items || []).find((item) => item.id === result.deviceId);
+      if (selectedDevice) {
+        this.setSelectedDevice(selectedDevice);
+      }
+      return result;
     });
   },
 

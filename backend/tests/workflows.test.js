@@ -18,7 +18,11 @@ async function registerAndToken(app) {
   return response.json().token;
 }
 
-async function createProject(app, token) {
+async function createProject(app, token, overrides = {}) {
+  const processParams = Object.assign(
+    { speed: 1000, power: 65, passes: 1, lineSpacing: 1.2 },
+    overrides.processParams || {}
+  );
   const response = await app.inject({
     method: "POST",
     url: "/api/v1/projects",
@@ -31,7 +35,7 @@ async function createProject(app, token) {
       selectedDeviceId: "dev_123",
       content: { text: "Best Mom", imageAssetId: null },
       layout: { widthMm: 80, heightMm: 50, rotationDeg: 0, align: "center" },
-      processParams: { speed: 1000, power: 65, passes: 1, lineSpacing: 1.2 }
+      processParams
     }
   });
 
@@ -111,6 +115,144 @@ test("preview generation and job flow reach ready/completed states", async () =>
 
   assert.equal(jobDetail.json().status, "completed");
   assert.equal(jobDetail.json().timeline.length >= 3, true);
+
+  await app.close();
+});
+
+test("job list respects status filter for authenticated user", async () => {
+  const { app } = createTestApp();
+  await app.ready();
+  const token = await registerAndToken(app);
+  const projectId = await createProject(app, token);
+
+  const previewCreate = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectId}/preview`,
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      forceRegenerate: true
+    }
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  const generationCreate = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectId}/generate`,
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      previewId: previewCreate.json().previewId
+    }
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  await app.inject({
+    method: "POST",
+    url: "/api/v1/jobs",
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      projectId,
+      generationId: generationCreate.json().generationId,
+      deviceId: "dev_123",
+      executionMode: "offline_file"
+    }
+  });
+
+  const runningList = await app.inject({
+    method: "GET",
+    url: "/api/v1/jobs?status=running",
+    headers: {
+      authorization: `Bearer ${token}`
+    }
+  });
+
+  const queuedList = await app.inject({
+    method: "GET",
+    url: "/api/v1/jobs?status=queued",
+    headers: {
+      authorization: `Bearer ${token}`
+    }
+  });
+
+  assert.equal(runningList.statusCode, 200);
+  assert.equal(Array.isArray(runningList.json().items), true);
+  assert.equal(Array.isArray(queuedList.json().items), true);
+
+  await app.close();
+});
+
+test("job flow stores structured failure and retryable flag", async () => {
+  const { app } = createTestApp();
+  await app.ready();
+  const token = await registerAndToken(app);
+  const projectId = await createProject(app, token, {
+    processParams: {
+      simulateFailureCode: "DEVICE_OFFLINE"
+    }
+  });
+
+  const previewCreate = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectId}/preview`,
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      forceRegenerate: true
+    }
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  const generationCreate = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectId}/generate`,
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      previewId: previewCreate.json().previewId
+    }
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  const jobCreate = await app.inject({
+    method: "POST",
+    url: "/api/v1/jobs",
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      projectId,
+      generationId: generationCreate.json().generationId,
+      deviceId: "dev_123",
+      executionMode: "offline_file"
+    }
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 180));
+
+  const jobDetail = await app.inject({
+    method: "GET",
+    url: `/api/v1/jobs/${jobCreate.json().jobId}`,
+    headers: {
+      authorization: `Bearer ${token}`
+    }
+  });
+
+  assert.equal(jobDetail.statusCode, 200);
+  assert.equal(jobDetail.json().status, "failed");
+  assert.equal(jobDetail.json().failure.code, "DEVICE_OFFLINE");
+  assert.equal(jobDetail.json().failure.retryable, true);
+  assert.equal(typeof jobDetail.json().failure.message, "string");
 
   await app.close();
 });

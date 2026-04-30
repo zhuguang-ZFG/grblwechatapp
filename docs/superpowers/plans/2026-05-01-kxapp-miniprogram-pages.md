@@ -374,6 +374,12 @@ Recommended route groups:
 - `查看原项目`
   - open project detail/editor
 
+**Implemented P0 behavior notes**
+
+- failed jobs should show backend `failure.code` and `failure.message`
+- when backend returns a retryable failure, page should show a retry CTA and a short retry suggestion
+- cancel and retry actions should use confirmation modal to avoid accidental taps
+
 ## 7. Device Pages
 
 ## 7.1 Device List Page
@@ -428,6 +434,10 @@ Recommended route groups:
   - call `POST /devices/bind`
   - on success:
     - go back to device list
+
+**Implemented P0 behavior notes**
+
+- after bind success, refresh device list and write the newly bound device into selected-device storage when the returned `deviceId` is found
 
 ## 8. Profile Pages
 

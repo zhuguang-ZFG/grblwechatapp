@@ -1,3 +1,5 @@
+const { resolveFailure } = require("../modules/jobs/failure-codes");
+
 function now() {
   return new Date().toISOString();
 }
@@ -49,15 +51,43 @@ function createWorkerTasks(app) {
   function updateJob(jobId, status, percent, step) {
     db.prepare(`
       UPDATE jobs
-      SET status = ?, progress_json = ?, updated_at = ?
+      SET status = ?, progress_json = ?, failure_json = ?, updated_at = ?
       WHERE id = ?
-    `).run(status, JSON.stringify({ percent, currentStep: step }), now(), jobId);
+    `).run(status, JSON.stringify({ percent, currentStep: step }), "", now(), jobId);
     pushJobEvent(jobId, status);
+  }
+
+  function failJob(jobId, step, failure) {
+    db.prepare(`
+      UPDATE jobs
+      SET status = ?, progress_json = ?, failure_json = ?, updated_at = ?
+      WHERE id = ?
+    `).run("failed", JSON.stringify({ percent: 100, currentStep: step }), JSON.stringify(failure), now(), jobId);
+    pushJobEvent(jobId, "failed");
+  }
+
+  function getSimulatedFailureCode(jobId) {
+    const row = db.prepare(`
+      SELECT projects.process_params_json AS process_params_json
+      FROM jobs
+      INNER JOIN projects ON projects.id = jobs.project_id
+      WHERE jobs.id = ?
+    `).get(jobId);
+    if (!row) {
+      return "";
+    }
+    const processParams = JSON.parse(row.process_params_json || "{}");
+    return processParams.simulateFailureCode || "";
   }
 
   async function runJob(jobId) {
     updateJob(jobId, "dispatching", 10, "dispatching");
     await new Promise((resolve) => setTimeout(resolve, 40));
+    const simulatedFailure = resolveFailure(getSimulatedFailureCode(jobId));
+    if (simulatedFailure) {
+      failJob(jobId, "dispatching", simulatedFailure);
+      return;
+    }
     updateJob(jobId, "running", 65, "streaming");
     await new Promise((resolve) => setTimeout(resolve, 60));
     updateJob(jobId, "completed", 100, "running");

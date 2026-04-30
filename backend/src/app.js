@@ -44,6 +44,7 @@ function buildApp(options = {}) {
   registerJobRoutes(app);
 
   app.addHook("onClose", async () => {
+    app.workerRuntime.close();
     app.db.close();
   });
 

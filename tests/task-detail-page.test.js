@@ -1,0 +1,227 @@
+const assert = require("assert");
+const path = require("path");
+
+const pagePath = path.resolve(__dirname, "../miniprogram/pages/tasks/detail/index.js");
+const apiPath = path.resolve(__dirname, "../miniprogram/services/api/index.js");
+const pageAuthPath = path.resolve(__dirname, "../miniprogram/utils/page-auth.js");
+const formatterPath = path.resolve(__dirname, "../miniprogram/utils/status-formatters.js");
+
+function loadTaskDetailPage({ modalConfirm = true, getJobResponse } = {}) {
+  delete require.cache[pagePath];
+
+  let pageDefinition = null;
+  const calls = {
+    cancelJob: 0,
+    retryJob: 0,
+    redirectTo: [],
+    showModal: 0
+  };
+
+  global.Page = (definition) => {
+    pageDefinition = definition;
+  };
+
+  global.wx = {
+    showModal(options) {
+      calls.showModal += 1;
+      options.success({ confirm: modalConfirm });
+    },
+    redirectTo(options) {
+      calls.redirectTo.push(options.url);
+    }
+  };
+
+  require.cache[apiPath] = {
+    id: apiPath,
+    filename: apiPath,
+    loaded: true,
+    exports: {
+      async cancelJob() {
+        calls.cancelJob += 1;
+      },
+      async retryJob() {
+        calls.retryJob += 1;
+        return { jobId: "job_retry_1" };
+      },
+      async getJob() {
+        return getJobResponse || {
+          id: "job_1",
+          status: "queued",
+          progress: { currentStep: "queued", percent: 0 },
+          timeline: []
+        };
+      }
+    }
+  };
+
+  require.cache[pageAuthPath] = {
+    id: pageAuthPath,
+    filename: pageAuthPath,
+    loaded: true,
+    exports: {
+      requireAuth() {
+        return true;
+      }
+    }
+  };
+
+  require.cache[formatterPath] = {
+    id: formatterPath,
+    filename: formatterPath,
+    loaded: true,
+    exports: {
+      formatJobStatus(value) {
+        return value;
+      },
+      formatJobStep(value) {
+        return value;
+      }
+    }
+  };
+
+  require(pagePath);
+
+  return { pageDefinition, calls };
+}
+
+async function run() {
+  const declined = loadTaskDetailPage({ modalConfirm: false });
+  let refreshCount = 0;
+  const declinedCtx = {
+    data: { id: "job_1", actionLoading: false, actionKind: "" },
+    setData(patch) {
+      this.data = Object.assign({}, this.data, patch);
+    },
+    refreshJob: async () => {
+      refreshCount += 1;
+    }
+  };
+  await declined.pageDefinition.cancelJob.call(declinedCtx);
+  assert.strictEqual(declined.calls.showModal, 1);
+  assert.strictEqual(declined.calls.cancelJob, 0);
+  assert.strictEqual(refreshCount, 0);
+  assert.strictEqual(declinedCtx.data.actionLoading, false);
+  assert.strictEqual(declinedCtx.data.actionKind, "");
+
+  const accepted = loadTaskDetailPage({ modalConfirm: true });
+  refreshCount = 0;
+  const acceptedCtx = {
+    data: { id: "job_1", actionLoading: false, actionKind: "" },
+    setData(patch) {
+      this.data = Object.assign({}, this.data, patch);
+    },
+    refreshJob: async () => {
+      refreshCount += 1;
+    }
+  };
+  await accepted.pageDefinition.cancelJob.call(acceptedCtx);
+  assert.strictEqual(accepted.calls.cancelJob, 1);
+  assert.strictEqual(refreshCount, 1);
+  assert.strictEqual(acceptedCtx.data.actionLoading, false);
+  assert.strictEqual(acceptedCtx.data.actionKind, "");
+
+  const retryCtx = {
+    data: { id: "job_1", actionLoading: false, actionKind: "", canRetry: true },
+    setData(patch) {
+      this.data = Object.assign({}, this.data, patch);
+    }
+  };
+  await accepted.pageDefinition.retryJob.call(retryCtx);
+  assert.strictEqual(accepted.calls.retryJob, 1);
+  assert.deepStrictEqual(accepted.calls.redirectTo, ["/pages/tasks/detail/index?id=job_retry_1"]);
+  assert.strictEqual(retryCtx.data.actionLoading, false);
+  assert.strictEqual(retryCtx.data.actionKind, "");
+
+  await accepted.pageDefinition.cancelJob.call({
+    data: { id: "job_1", actionLoading: true, actionKind: "cancel" },
+    setData() {},
+    refreshJob: async () => {}
+  });
+  assert.strictEqual(accepted.calls.cancelJob, 1);
+
+  const failedJob = loadTaskDetailPage({
+    getJobResponse: {
+      id: "job_failed_1",
+      projectId: "prj_1",
+      deviceId: "dev_1",
+      status: "failed",
+      progress: { currentStep: "running", percent: 62 },
+      failure: {
+        code: "DEVICE_OFFLINE",
+        message: "device heartbeat missing",
+        retryable: true
+      },
+      timeline: []
+    }
+  });
+  const refreshCtx = {
+    data: { id: "job_failed_1" },
+    setData(patch) {
+      this.data = Object.assign({}, this.data, patch);
+    }
+  };
+  await failedJob.pageDefinition.refreshJob.call(refreshCtx);
+  assert.strictEqual(refreshCtx.data.job.failureSuggestion, "设备当前离线，请检查设备通电与网络连接后再重试。");
+  assert.strictEqual(refreshCtx.data.canRetry, true);
+
+  const gatewayTimeoutJob = loadTaskDetailPage({
+    getJobResponse: {
+      id: "job_failed_timeout",
+      projectId: "prj_1",
+      deviceId: "dev_1",
+      status: "failed",
+      progress: { currentStep: "dispatching", percent: 24 },
+      failure: {
+        code: "GATEWAY_TIMEOUT",
+        message: "gateway timeout",
+        retryable: true
+      },
+      timeline: []
+    }
+  });
+  const gatewayCtx = {
+    data: { id: "job_failed_timeout" },
+    setData(patch) {
+      this.data = Object.assign({}, this.data, patch);
+    }
+  };
+  await gatewayTimeoutJob.pageDefinition.refreshJob.call(gatewayCtx);
+  assert.strictEqual(gatewayCtx.data.job.failureSuggestion, "网关下发超时，请确认设备连接稳定后重试。");
+
+  const nonRetryableJob = loadTaskDetailPage({
+    getJobResponse: {
+      id: "job_failed_2",
+      projectId: "prj_1",
+      deviceId: "dev_1",
+      status: "failed",
+      progress: { currentStep: "running", percent: 80 },
+      failure: {
+        code: "PARAM_INVALID",
+        message: "invalid process params",
+        retryable: false
+      },
+      timeline: []
+    }
+  });
+  const nonRetryableCtx = {
+    data: { id: "job_failed_2" },
+    setData(patch) {
+      this.data = Object.assign({}, this.data, patch);
+    }
+  };
+  await nonRetryableJob.pageDefinition.refreshJob.call(nonRetryableCtx);
+  assert.strictEqual(nonRetryableCtx.data.canRetry, false);
+  assert.strictEqual(nonRetryableCtx.data.retryHint, "当前错误不支持直接重试，请先调整项目参数后重新提交任务。");
+  assert.strictEqual(nonRetryableCtx.data.job.failureSuggestion, "参数配置无效，请调整加工参数后重新提交任务。");
+
+  await nonRetryableJob.pageDefinition.retryJob.call({
+    data: { id: "job_failed_2", actionLoading: false, actionKind: "", canRetry: false },
+    setData() {}
+  });
+  assert.strictEqual(nonRetryableJob.calls.retryJob, 0);
+}
+
+run().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

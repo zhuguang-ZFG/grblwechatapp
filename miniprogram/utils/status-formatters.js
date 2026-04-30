@@ -26,7 +26,8 @@ const JOB_STEP_MAP = {
   queued: "排队中",
   dispatching: "下发中",
   streaming: "发送中",
-  running: "运行中"
+  running: "运行中",
+  canceled: "已取消"
 };
 
 function formatByMap(value, map) {

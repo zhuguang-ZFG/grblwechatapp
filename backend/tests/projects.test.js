@@ -89,3 +89,37 @@ test("create and fetch project persists project data", async () => {
 
   await app.close();
 });
+
+test("bind device marks device as bound for current user", async () => {
+  const { app } = createTestApp();
+  await app.ready();
+  const token = await registerAndToken(app);
+
+  const response = await app.inject({
+    method: "POST",
+    url: "/api/v1/devices/bind",
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      bindingCode: "EFGH5678"
+    }
+  });
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.json().bindStatus, "bound");
+
+  const devices = await app.inject({
+    method: "GET",
+    url: "/api/v1/devices",
+    headers: {
+      authorization: `Bearer ${token}`
+    }
+  });
+
+  const bound = devices.json().items.find((item) => item.id === response.json().deviceId);
+  assert.equal(bound.bindStatus, "bound");
+  assert.equal(bound.onlineStatus, "online");
+
+  await app.close();
+});

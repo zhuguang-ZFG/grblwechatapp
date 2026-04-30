@@ -30,6 +30,8 @@
   `docs/superpowers/plans/2026-05-01-kxapp-p0-field-dictionary.md`
 - Backend P0 design:
   `docs/superpowers/specs/2026-05-01-kxapp-backend-p0-design.md`
+- Failure code contract:
+  `docs/superpowers/specs/2026-05-01-kxapp-failure-codes-v0.md`
 - Backend implementation plan:
   `docs/superpowers/plans/2026-05-01-kxapp-backend-p0-implementation.md`
 
@@ -94,6 +96,8 @@ Important current frontend facts:
 - session handling is centralized in `miniprogram/utils/session.js`
 - auth request bearer token handling is in `miniprogram/utils/request.js`
 - real adapter is in `miniprogram/services/api/real-adapter.js`
+- device bind success now refreshes the device list and writes the newly bound device into local selected-device storage
+- task detail page now exposes failure reason, retryability, retry suggestions, and guarded cancel/retry confirmation flows
 
 ### 3.2 Backend
 
@@ -118,8 +122,22 @@ Current backend runtime shape:
 - seeded devices
 - local artifact store
 - fake async workers for preview/generation/job progression
+- worker runtime now clears pending timers on app shutdown so tests and app close do not leave async tails behind
 
-### 3.3 Registration flow alignment
+### 3.3 Job state and failure baseline
+
+This is now part of the implementation baseline:
+
+- `/api/v1/jobs` is filtered by authenticated user ownership
+- `/api/v1/jobs?status=...` supports status filtering for page-level task tabs
+- fake worker tasks can emit structured failure payloads with `code`, `message`, and `retryable`
+- current simulated failure code map includes:
+  - `DEVICE_OFFLINE`
+  - `DEVICE_BUSY`
+  - `GATEWAY_TIMEOUT`
+  - `PARAM_INVALID`
+
+### 3.4 Registration flow alignment
 
 This was an important compatibility point and is now part of the baseline:
 
@@ -142,7 +160,7 @@ npm test
 
 Expected current result:
 
-- 8 backend tests passing
+- 11 backend tests passing
 
 Covered behaviors:
 
@@ -152,8 +170,11 @@ Covered behaviors:
 - auth guard
 - temp auth token registration branch
 - devices list
+- device bind updates device ownership/bind state
 - project create/detail
 - preview/generation/job async flow
+- jobs list status filtering
+- structured job failure payload with retryable flag
 
 ### 4.2 Frontend node-side tests
 
@@ -167,6 +188,7 @@ node tests/auth-page-guard.test.js
 node tests/mock-project-list.test.js
 node tests/project-formatters.test.js
 node tests/status-formatters.test.js
+node tests/task-detail-page.test.js
 ```
 
 Expected current result:
@@ -203,8 +225,12 @@ Important pushed commits:
   - backend async workflow APIs
 - `0b3d784`
   - register flow aligned with temp auth token
+- `9811bb3`
+  - docs freeze kxapp migration reference baseline
+- `6125cd5`
+  - task failure handling, device bind sync, failure code spec, and verification refresh
 
-If a future session needs a quick orientation point, treat `0b3d784` as the minimum known-good baseline for the current closed loop.
+If a future session needs a quick orientation point, treat `6125cd5` as the latest known integrated baseline.
 
 ## 6. Known Gaps Still Open
 

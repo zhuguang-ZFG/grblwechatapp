@@ -40,8 +40,23 @@ function createJobsService(app) {
     };
   }
 
-  function listJobs() {
-    const rows = db.prepare("SELECT * FROM jobs ORDER BY updated_at DESC").all();
+  function listJobs(userId, status) {
+    const rows = status && status !== "all"
+      ? db.prepare(`
+          SELECT jobs.*
+          FROM jobs
+          INNER JOIN projects ON projects.id = jobs.project_id
+          WHERE projects.owner_user_id = ? AND jobs.status = ?
+          ORDER BY jobs.updated_at DESC
+        `).all(userId, status)
+      : db.prepare(`
+          SELECT jobs.*
+          FROM jobs
+          INNER JOIN projects ON projects.id = jobs.project_id
+          WHERE projects.owner_user_id = ?
+          ORDER BY jobs.updated_at DESC
+        `).all(userId);
+
     return {
       items: rows.map((row) => ({
         id: row.id,
