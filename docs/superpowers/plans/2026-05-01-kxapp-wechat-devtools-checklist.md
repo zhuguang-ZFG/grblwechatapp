@@ -68,6 +68,12 @@ powershell -ExecutionPolicy Bypass -File .\scripts\wechat-devtools-smoke-bootstr
 
 Add `-StartBackend` if you also want it to launch `node src/server.js` in the background after tests pass.
 
+If you started backend through the smoke bootstrap helper and want to stop that background process cleanly:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\wechat-devtools-stop-backend.ps1
+```
+
 ### 3.2 Backend startup
 
 From `D:\GIT\wechatapp\backend`:

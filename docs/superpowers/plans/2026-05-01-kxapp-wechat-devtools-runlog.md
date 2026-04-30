@@ -29,6 +29,12 @@ Or use the combined smoke bootstrap helper when you want one command to create a
 powershell -ExecutionPolicy Bypass -File .\scripts\wechat-devtools-smoke-bootstrap.ps1 -Operator "your name"
 ```
 
+If that bootstrap run started backend in the background, stop it later with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\wechat-devtools-stop-backend.ps1
+```
+
 ## 2. Status Legend
 
 - `PASS`: verified in DevTools and behaved as expected

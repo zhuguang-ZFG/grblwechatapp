@@ -36,6 +36,7 @@ function run() {
 
   assert.ok(output.includes("WeChat DevTools Smoke Bootstrap"), "should print script title");
   assert.ok(output.includes("Bootstrap Test"), "should print operator");
+  assert.ok(output.includes("Backend PID file:"), "should print backend pid file path");
   assert.ok(output.includes("Run log template entry appended."), "should append run log entry");
   assert.ok(output.includes("Dry run only."), "should report dry run mode");
 
