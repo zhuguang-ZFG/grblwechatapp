@@ -10,6 +10,16 @@
 
 ---
 
+## Reference Baseline
+
+For future sessions, treat `docs/superpowers/plans/2026-05-01-kxapp-reference-baseline.md` as the frozen context anchor for:
+
+- source repo reference (`D:\GIT\kxapp`)
+- target repo reference (`D:\GIT\wechatapp`)
+- remote repo
+- current implementation status
+- latest verified test and API loop evidence
+
 ## File Structure
 
 - Create: `docs/superpowers/plans/2026-05-01-kxapp-wechat-mini-program.md`

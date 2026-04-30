@@ -6,6 +6,10 @@
 
 ---
 
+## Reference Baseline
+
+Read `docs/superpowers/plans/2026-05-01-kxapp-reference-baseline.md` before changing this document in a new session. It freezes the currently agreed source references, backend/frontend baseline, pushed commits, and known open gaps.
+
 ## 1. Core Design Rules
 
 1. The mini program never owns heavy image processing, SVG parsing, path generation, or GCode generation.
