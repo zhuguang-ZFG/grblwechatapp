@@ -48,6 +48,12 @@ What it gives you:
 - checklist path
 - run log path
 
+If you want a fresh manual smoke entry appended to the run log before opening DevTools:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\wechat-devtools-new-runlog-entry.ps1 -Operator "your name"
+```
+
 For a real preflight run:
 
 ```powershell

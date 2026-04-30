@@ -17,6 +17,12 @@ Recommended workflow:
 4. walk through the checklist
 5. append one run entry below
 
+Quick helper for step 5:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\wechat-devtools-new-runlog-entry.ps1 -Operator "your name"
+```
+
 ## 2. Status Legend
 
 - `PASS`: verified in DevTools and behaved as expected
