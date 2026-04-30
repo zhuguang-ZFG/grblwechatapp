@@ -16,7 +16,14 @@
   </view>
 
   <view wx:if="{{projects.length}}" class="card-list">
-    <view wx:for="{{projects}}" wx:key="id" class="list-item project-item" bindtap="openProject" data-id="{{item.id}}">
+    <view
+      wx:for="{{projects}}"
+      wx:key="id"
+      class="list-item project-item"
+      bindtap="openProject"
+      data-id="{{item.id}}"
+      data-archived="{{item.isArchived}}"
+    >
       <view class="split">
         <view class="stack" style="gap: 8rpx;">
           <text class="item-title">{{item.name}}</text>
@@ -27,6 +34,8 @@
           <text class="status-pill">{{item.sourceTypeLabel}}</text>
         </view>
       </view>
+
+      <view wx:if="{{item.archivedHint}}" class="item-meta">{{item.archivedHint}}</view>
 
       <view class="project-grid">
         <view class="project-meta-block">

@@ -161,18 +161,23 @@ function createCtx() {
 }
 
 async function run() {
-  const duplicatePage = loadProjectsPage({ actionTapIndex: 0 });
-  const duplicateCtx = createCtx();
-  Object.assign(duplicateCtx, duplicatePage.pageDefinition);
-  await duplicatePage.pageDefinition.loadProjects.call(duplicateCtx);
-  assert.deepStrictEqual(duplicateCtx.data.projects.map((item) => item.id), ["prj_1"]);
-  await duplicatePage.pageDefinition.openProjectActions.call(duplicateCtx, {
+  const activePage = loadProjectsPage({ actionTapIndex: 0 });
+  const activeCtx = createCtx();
+  Object.assign(activeCtx, activePage.pageDefinition);
+  await activePage.pageDefinition.loadProjects.call(activeCtx);
+  assert.deepStrictEqual(activeCtx.data.projects.map((item) => item.id), ["prj_1"]);
+  activePage.pageDefinition.openProject.call(activeCtx, {
     currentTarget: { dataset: { id: "prj_1", archived: false } }
   });
-  assert.deepStrictEqual(duplicatePage.calls.duplicateProject, ["prj_1"]);
-  assert.strictEqual(duplicatePage.calls.showModal, 0);
-  assert.strictEqual(duplicatePage.calls.showToast[0], "已复制项目");
-  assert.deepStrictEqual(duplicatePage.calls.navigateTo.pop(), "/pages/workspace/editor/index?id=prj_copy_1");
+  assert.deepStrictEqual(activePage.calls.navigateTo[0], "/pages/workspace/editor/index?id=prj_1");
+
+  await activePage.pageDefinition.openProjectActions.call(activeCtx, {
+    currentTarget: { dataset: { id: "prj_1", archived: false } }
+  });
+  assert.deepStrictEqual(activePage.calls.duplicateProject, ["prj_1"]);
+  assert.strictEqual(activePage.calls.showModal, 0);
+  assert.strictEqual(activePage.calls.showToast[0], "已复制项目");
+  assert.deepStrictEqual(activePage.calls.navigateTo.pop(), "/pages/workspace/editor/index?id=prj_copy_1");
 
   const archivePage = loadProjectsPage({ actionTapIndex: 1, modalConfirm: true });
   const archiveCtx = createCtx();
@@ -202,6 +207,12 @@ async function run() {
   await archivedFilterPage.pageDefinition.loadProjects.call(archivedFilterCtx);
   assert.deepStrictEqual(archivedFilterCtx.data.projects.map((item) => item.id), ["prj_2"]);
   assert.strictEqual(archivedFilterCtx.data.projects[0].isArchived, true);
+
+  archivedFilterPage.pageDefinition.openProject.call(archivedFilterCtx, {
+    currentTarget: { dataset: { id: "prj_2", archived: true } }
+  });
+  assert.deepStrictEqual(archivedFilterPage.calls.navigateTo, []);
+  assert.strictEqual(archivedFilterPage.calls.showToast[0], "已归档项目请先恢复");
 
   const restorePage = loadProjectsPage({ actionTapIndex: 0 });
   const restoreCtx = createCtx();

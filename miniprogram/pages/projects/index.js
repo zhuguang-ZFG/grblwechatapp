@@ -96,6 +96,7 @@ Page({
 
     const projects = filtered.map((item) => {
       const status = item.status || "draft";
+      const isArchived = status === "archived";
       return {
         ...item,
         sourceTypeLabel: formatProjectType(item.sourceType),
@@ -104,7 +105,8 @@ Page({
         generationStateLabel: formatArtifactState(item.latestGenerationId),
         deviceName: deviceMap[item.selectedDeviceId]?.name || item.selectedDeviceId || "未选择设备",
         deviceStatusLabel: formatDeviceStatus(deviceMap[item.selectedDeviceId]?.onlineStatus),
-        isArchived: status === "archived"
+        isArchived,
+        archivedHint: isArchived ? "已归档项目仅支持恢复或删除。" : ""
       };
     });
 
@@ -112,6 +114,10 @@ Page({
   },
 
   openProject(event) {
+    if (event.currentTarget.dataset.archived) {
+      showToast("已归档项目请先恢复");
+      return;
+    }
     wx.navigateTo({ url: `/pages/workspace/editor/index?id=${event.currentTarget.dataset.id}` });
   },
 
