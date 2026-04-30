@@ -124,7 +124,7 @@ test("bind device marks device as bound for current user", async () => {
   await app.close();
 });
 
-test("duplicate archive and delete project lifecycle", async () => {
+test("duplicate archive restore and delete project lifecycle", async () => {
   const { app } = createTestApp();
   await app.ready();
   const token = await registerAndToken(app);
@@ -179,6 +179,16 @@ test("duplicate archive and delete project lifecycle", async () => {
   });
   assert.equal(archived.statusCode, 200);
   assert.equal(archived.json().status, "archived");
+
+  const restored = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectId}/restore`,
+    headers: {
+      authorization: `Bearer ${token}`
+    }
+  });
+  assert.equal(restored.statusCode, 200);
+  assert.equal(restored.json().status, "draft");
 
   const deleted = await app.inject({
     method: "DELETE",

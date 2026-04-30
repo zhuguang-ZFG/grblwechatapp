@@ -130,11 +130,17 @@ Page({
       return;
     }
     const projectId = event.currentTarget.dataset.id;
-    const actions = [
-      { label: "复制项目", handler: () => this.duplicateProject(projectId) },
-      { label: "归档项目", handler: () => this.archiveProject(projectId) },
-      { label: "删除项目", handler: () => this.deleteProject(projectId) }
-    ];
+    const isArchived = Boolean(event.currentTarget.dataset.archived);
+    const actions = isArchived
+      ? [
+        { label: "恢复项目", handler: () => this.restoreProject(projectId) },
+        { label: "删除项目", handler: () => this.deleteProject(projectId) }
+      ]
+      : [
+        { label: "复制项目", handler: () => this.duplicateProject(projectId) },
+        { label: "归档项目", handler: () => this.archiveProject(projectId) },
+        { label: "删除项目", handler: () => this.deleteProject(projectId) }
+      ];
 
     try {
       const result = await showActionSheet(actions.map((item) => item.label));
@@ -176,6 +182,17 @@ Page({
     try {
       await api.archiveProject(projectId);
       showToast("项目已归档");
+      await this.loadProjects();
+    } finally {
+      this.setData({ actionLoading: false, actionProjectId: "" });
+    }
+  },
+
+  async restoreProject(projectId) {
+    this.setData({ actionLoading: true, actionProjectId: projectId });
+    try {
+      await api.restoreProject(projectId);
+      showToast("项目已恢复");
       await this.loadProjects();
     } finally {
       this.setData({ actionLoading: false, actionProjectId: "" });

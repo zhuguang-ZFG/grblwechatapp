@@ -55,6 +55,7 @@
           bindtap="openProjectActions"
           catchtap="openProjectActions"
           data-id="{{item.id}}"
+          data-archived="{{item.isArchived}}"
           loading="{{actionLoading && actionProjectId === item.id}}"
           disabled="{{actionLoading}}"
         >

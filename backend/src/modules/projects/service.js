@@ -138,6 +138,19 @@ function createProjectsService(app) {
     return getProject(userId, projectId);
   }
 
+  function restoreProject(userId, projectId) {
+    const existing = getProject(userId, projectId);
+    if (!existing) {
+      return null;
+    }
+    db.prepare(`
+      UPDATE projects
+      SET status = ?, updated_at = ?
+      WHERE id = ? AND owner_user_id = ?
+    `).run("draft", now(), projectId, userId);
+    return getProject(userId, projectId);
+  }
+
   function deleteProject(userId, projectId) {
     const existing = getProject(userId, projectId);
     if (!existing) {
@@ -154,6 +167,7 @@ function createProjectsService(app) {
     updateProject,
     duplicateProject,
     archiveProject,
+    restoreProject,
     deleteProject
   };
 }

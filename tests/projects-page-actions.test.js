@@ -14,6 +14,7 @@ function loadProjectsPage({ actionTapIndex = 0, modalConfirm = true } = {}) {
   const calls = {
     duplicateProject: [],
     archiveProject: [],
+    restoreProject: [],
     deleteProject: [],
     navigateTo: [],
     showActionSheet: 0,
@@ -89,6 +90,10 @@ function loadProjectsPage({ actionTapIndex = 0, modalConfirm = true } = {}) {
         calls.archiveProject.push(projectId);
         return { id: projectId, archived: true };
       },
+      async restoreProject(projectId) {
+        calls.restoreProject.push(projectId);
+        return { id: projectId, status: "draft" };
+      },
       async deleteProject(projectId) {
         calls.deleteProject.push(projectId);
         return { id: projectId, deleted: true };
@@ -162,7 +167,7 @@ async function run() {
   await duplicatePage.pageDefinition.loadProjects.call(duplicateCtx);
   assert.deepStrictEqual(duplicateCtx.data.projects.map((item) => item.id), ["prj_1"]);
   await duplicatePage.pageDefinition.openProjectActions.call(duplicateCtx, {
-    currentTarget: { dataset: { id: "prj_1" } }
+    currentTarget: { dataset: { id: "prj_1", archived: false } }
   });
   assert.deepStrictEqual(duplicatePage.calls.duplicateProject, ["prj_1"]);
   assert.strictEqual(duplicatePage.calls.showModal, 0);
@@ -174,7 +179,7 @@ async function run() {
   Object.assign(archiveCtx, archivePage.pageDefinition);
   await archivePage.pageDefinition.loadProjects.call(archiveCtx);
   await archivePage.pageDefinition.openProjectActions.call(archiveCtx, {
-    currentTarget: { dataset: { id: "prj_1" } }
+    currentTarget: { dataset: { id: "prj_1", archived: false } }
   });
   assert.deepStrictEqual(archivePage.calls.archiveProject, ["prj_1"]);
   assert.strictEqual(archivePage.calls.showModal, 1);
@@ -185,7 +190,7 @@ async function run() {
   Object.assign(deleteCtx, deletePage.pageDefinition);
   await deletePage.pageDefinition.loadProjects.call(deleteCtx);
   await deletePage.pageDefinition.openProjectActions.call(deleteCtx, {
-    currentTarget: { dataset: { id: "prj_1" } }
+    currentTarget: { dataset: { id: "prj_1", archived: false } }
   });
   assert.deepStrictEqual(deletePage.calls.deleteProject, []);
   assert.strictEqual(deletePage.calls.showModal, 1);
@@ -197,6 +202,18 @@ async function run() {
   await archivedFilterPage.pageDefinition.loadProjects.call(archivedFilterCtx);
   assert.deepStrictEqual(archivedFilterCtx.data.projects.map((item) => item.id), ["prj_2"]);
   assert.strictEqual(archivedFilterCtx.data.projects[0].isArchived, true);
+
+  const restorePage = loadProjectsPage({ actionTapIndex: 0 });
+  const restoreCtx = createCtx();
+  Object.assign(restoreCtx, restorePage.pageDefinition);
+  restoreCtx.data.filterIndex = 3;
+  await restorePage.pageDefinition.loadProjects.call(restoreCtx);
+  await restorePage.pageDefinition.openProjectActions.call(restoreCtx, {
+    currentTarget: { dataset: { id: "prj_2", archived: true } }
+  });
+  assert.deepStrictEqual(restorePage.calls.restoreProject, ["prj_2"]);
+  assert.strictEqual(restorePage.calls.showModal, 0);
+  assert.strictEqual(restorePage.calls.showToast[0], "项目已恢复");
 }
 
 run().catch((error) => {

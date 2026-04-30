@@ -21,9 +21,15 @@ async function run() {
   assert.strictEqual(afterDuplicate[0].id, duplicated.id);
   assert.strictEqual(afterDuplicate[0].name.includes("Copy"), true);
 
-  await mockApi.archiveProject(duplicated.id);
+  const archived = await mockApi.archiveProject(duplicated.id);
+  assert.strictEqual(archived.status, "archived");
   const afterArchive = await mockApi.listProjects();
-  assert.strictEqual(afterArchive.some((item) => item.id === duplicated.id), false);
+  assert.strictEqual(afterArchive.some((item) => item.id === duplicated.id && item.status === "archived"), true);
+
+  const restored = await mockApi.restoreProject(duplicated.id);
+  assert.strictEqual(restored.status, "draft");
+  const afterRestore = await mockApi.listProjects();
+  assert.strictEqual(afterRestore.some((item) => item.id === duplicated.id && item.status === "draft"), true);
 
   await mockApi.deleteProject(created.id);
   const afterDelete = await mockApi.listProjects();

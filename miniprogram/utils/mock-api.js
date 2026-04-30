@@ -321,14 +321,22 @@ async function duplicateProject(projectId) {
 
 async function archiveProject(projectId) {
   await wait();
-  const index = state.projects.findIndex((item) => item.id === projectId);
-  if (index >= 0) {
-    state.projects.splice(index, 1);
+  const project = state.projects.find((item) => item.id === projectId);
+  if (project) {
+    project.status = "archived";
+    project.updatedAt = "2026-05-01T10:21:00Z";
   }
-  return {
-    id: projectId,
-    archived: true
-  };
+  return clone(project || { id: projectId, status: "archived" });
+}
+
+async function restoreProject(projectId) {
+  await wait();
+  const project = state.projects.find((item) => item.id === projectId);
+  if (project) {
+    project.status = "draft";
+    project.updatedAt = "2026-05-01T10:21:30Z";
+  }
+  return clone(project || { id: projectId, status: "draft" });
 }
 
 async function deleteProject(projectId) {
@@ -500,6 +508,7 @@ module.exports = {
   saveProject,
   duplicateProject,
   archiveProject,
+  restoreProject,
   deleteProject,
   createPreview,
   getPreview,

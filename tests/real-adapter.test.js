@@ -21,7 +21,7 @@ require.cache[requestModulePath] = {
           total: 1
         });
       }
-  if (options.url.startsWith("/jobs")) {
+      if (options.url.startsWith("/jobs")) {
         return Promise.resolve({ items: [] });
       }
       if (options.url === "/devices/bind") {
@@ -107,9 +107,13 @@ async function run() {
   assert.strictEqual(recordedRequests[7].url, "/projects/prj_1/archive");
   assert.strictEqual(recordedRequests[7].method, "POST");
 
+  await adapter.restoreProject("prj_1");
+  assert.strictEqual(recordedRequests[8].url, "/projects/prj_1/restore");
+  assert.strictEqual(recordedRequests[8].method, "POST");
+
   await adapter.deleteProject("prj_1");
-  assert.strictEqual(recordedRequests[8].url, "/projects/prj_1");
-  assert.strictEqual(recordedRequests[8].method, "DELETE");
+  assert.strictEqual(recordedRequests[9].url, "/projects/prj_1");
+  assert.strictEqual(recordedRequests[9].method, "DELETE");
 }
 
 run().catch((error) => {

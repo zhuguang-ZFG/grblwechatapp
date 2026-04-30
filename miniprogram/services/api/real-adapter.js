@@ -133,6 +133,13 @@ module.exports = {
     });
   },
 
+  restoreProject(projectId) {
+    return request({
+      url: `/projects/${projectId}/restore`,
+      method: "POST"
+    });
+  },
+
   deleteProject(projectId) {
     return request({
       url: `/projects/${projectId}`,
