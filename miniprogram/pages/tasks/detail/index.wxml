@@ -1,8 +1,8 @@
 <view class="screen stack">
   <view class="hero-panel stack">
     <text class="eyebrow">任务详情</text>
-    <text class="hero-title">把这一单从排队到结束的轨迹都摊开看</text>
-    <text class="hero-copy">适合判断卡在哪一段，是预览生成、下发、还是设备执行本身出了问题。</text>
+    <text class="hero-title">把这条任务从排队到结束的轨迹完整摊开看</text>
+    <text class="hero-copy">适合判断卡在哪一段，是预览生成、任务下发，还是设备执行本身出现了问题。</text>
   </view>
 
   <view class="section stack">
@@ -10,7 +10,7 @@
       <text class="item-title">{{job.id}}</text>
       <text class="status-pill {{job.status === 'running' ? 'status-pill-accent' : ''}}">{{job.statusLabel}}</text>
     </view>
-    <view class="item-meta">项目 {{job.projectId}} · 设备 {{job.deviceId}}</view>
+    <view class="item-meta">项目 {{job.projectName || job.projectId}} · 设备 {{job.deviceName || job.deviceId}}</view>
     <view class="progress-track">
       <view class="progress-fill" style="width: {{job.progress.percent || 0}}%;"></view>
     </view>

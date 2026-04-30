@@ -50,9 +50,22 @@ function loadTaskDetailPage({ modalConfirm = true, getJobResponse } = {}) {
       async getJob() {
         return getJobResponse || {
           id: "job_1",
+          projectId: "prj_1",
+          deviceId: "dev_123",
           status: "queued",
           progress: { currentStep: "queued", percent: 0 },
           timeline: []
+        };
+      },
+      async getProject() {
+        return { id: "prj_1", name: "Project A" };
+      },
+      async listDevices() {
+        return {
+          items: [
+            { id: "dev_1", name: "KX Laser A1" },
+            { id: "dev_123", name: "KX Laser A1" }
+          ]
         };
       }
     }
@@ -167,6 +180,8 @@ async function run() {
   await failedJob.pageDefinition.refreshJob.call(refreshCtx);
   assert.strictEqual(refreshCtx.data.job.failureSuggestion, "设备当前离线，请检查设备通电与网络连接后再重试。");
   assert.strictEqual(refreshCtx.data.canRetry, true);
+  assert.strictEqual(refreshCtx.data.job.projectName, "Project A");
+  assert.strictEqual(refreshCtx.data.job.deviceName, "KX Laser A1");
 
   const gatewayTimeoutJob = loadTaskDetailPage({
     getJobResponse: {
@@ -190,7 +205,7 @@ async function run() {
     }
   };
   await gatewayTimeoutJob.pageDefinition.refreshJob.call(gatewayCtx);
-  assert.strictEqual(gatewayCtx.data.job.failureSuggestion, "网关下发超时，请确认设备连接稳定后重试。");
+  assert.strictEqual(gatewayCtx.data.job.failureSuggestion, "网关下发超时，请确认设备连接稳定后再重试。");
 
   const nonRetryableJob = loadTaskDetailPage({
     getJobResponse: {

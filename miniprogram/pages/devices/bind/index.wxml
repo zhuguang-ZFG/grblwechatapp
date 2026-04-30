@@ -1,8 +1,8 @@
 <view class="screen stack">
   <view class="hero-panel stack">
     <text class="eyebrow">绑定设备</text>
-    <text class="hero-title">输入绑定码，把设备接进这台小程序工作台</text>
-    <text class="hero-copy">P0 先用绑定码完成归属建立，后续再扩展更多设备识别与批量管理能力。</text>
+    <text class="hero-title">输入绑定码，把设备接入这台小程序工作台</text>
+    <text class="hero-copy">P0 先用绑定码完成设备归属建立，后续再扩展更多识别和批量管理能力。</text>
   </view>
 
   <view class="section stack">

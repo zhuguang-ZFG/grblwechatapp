@@ -5,8 +5,8 @@ const { formatJobStatus, formatJobStep } = require("../../../utils/status-format
 const FAILURE_SUGGESTION_MAP = {
   DEVICE_OFFLINE: "设备当前离线，请检查设备通电与网络连接后再重试。",
   DEVICE_BUSY: "设备当前忙碌，请等待当前任务完成后再重试。",
-  GATEWAY_TIMEOUT: "网关下发超时，请确认设备连接稳定后重试。",
-  GENERATION_NOT_READY: "生成结果尚未就绪，请稍后刷新状态后重试。",
+  GATEWAY_TIMEOUT: "网关下发超时，请确认设备连接稳定后再重试。",
+  GENERATION_NOT_READY: "生成结果尚未就绪，请稍后刷新状态后再重试。",
   PREVIEW_NOT_READY: "预览结果尚未就绪，请先完成预览再重试。",
   PARAM_INVALID: "参数配置无效，请调整加工参数后重新提交任务。"
 };
@@ -69,8 +69,29 @@ Page({
 
   async refreshJob() {
     const rawJob = await api.getJob(this.data.id);
+    let projectName = rawJob.projectId;
+    let deviceName = rawJob.deviceId;
+
+    try {
+      const [project, devices] = await Promise.all([
+        api.getProject(rawJob.projectId),
+        api.listDevices()
+      ]);
+      if (project && project.name) {
+        projectName = project.name;
+      }
+      const matchedDevice = ((devices && devices.items) || []).find((item) => item.id === rawJob.deviceId);
+      if (matchedDevice && matchedDevice.name) {
+        deviceName = matchedDevice.name;
+      }
+    } catch (error) {
+      // Keep detail view resilient if auxiliary lookups fail.
+    }
+
     const job = {
       ...rawJob,
+      projectName,
+      deviceName,
       statusLabel: formatJobStatus(rawJob.status),
       stepLabel: formatJobStep(rawJob.progress.currentStep),
       failureSuggestion: getFailureSuggestion(rawJob.failure),

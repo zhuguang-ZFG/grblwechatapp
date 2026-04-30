@@ -102,6 +102,8 @@ Important current frontend facts:
 - device selection from the device list now stores the full device object instead of only a raw device id
 - request helper now surfaces backend `code`, `statusCode`, and payload on rejected API errors so page logic can branch on business errors
 - workspace recent projects and task cards now prefer resolved project/device names instead of exposing raw ids directly
+- task detail page now also resolves project/device names when auxiliary lookups are available
+- core device/task/project WXML copy has been normalized into readable Chinese text to reduce terminal-encoding confusion during maintenance
 
 ### 3.2 Backend
 
@@ -212,6 +214,7 @@ node tests/failure-code-doc-sync.test.js
 node tests/failure-contract-doc.test.js
 node tests/workspace-page.test.js
 node tests/tasks-page.test.js
+node tests/task-detail-page.test.js
 ```
 
 Expected current result:
