@@ -36,6 +36,16 @@ function confirmAction({ title, content }) {
   });
 }
 
+function showActionToast(title) {
+  if (typeof wx === "undefined" || typeof wx.showToast !== "function") {
+    return;
+  }
+  wx.showToast({
+    title,
+    icon: "none"
+  });
+}
+
 Page({
   data: {
     id: "",
@@ -96,6 +106,11 @@ Page({
     try {
       await api.cancelJob(this.data.id);
       await this.refreshJob();
+    } catch (error) {
+      if (error && error.code === "invalid_cancel_target") {
+        showActionToast("当前任务不可取消");
+        await this.refreshJob();
+      }
     } finally {
       this.setData({ actionLoading: false, actionKind: "" });
     }
@@ -106,6 +121,7 @@ Page({
       return;
     }
     if (!this.data.canRetry) {
+      showActionToast("当前任务不可重试");
       return;
     }
     this.setData({ actionLoading: true, actionKind: "retry" });
@@ -120,6 +136,11 @@ Page({
     try {
       const result = await api.retryJob(this.data.id);
       wx.redirectTo({ url: `/pages/tasks/detail/index?id=${result.jobId}` });
+    } catch (error) {
+      if (error && error.code === "invalid_retry_target") {
+        showActionToast("当前任务不可重试");
+        await this.refreshJob();
+      }
     } finally {
       this.setData({ actionLoading: false, actionKind: "" });
     }
@@ -129,3 +150,10 @@ Page({
     wx.navigateTo({ url: `/pages/workspace/editor/index?id=${this.data.job.projectId}` });
   }
 });
+
+if (typeof module !== "undefined") {
+  module.exports = {
+    FAILURE_SUGGESTION_MAP,
+    getFailureSuggestion
+  };
+}

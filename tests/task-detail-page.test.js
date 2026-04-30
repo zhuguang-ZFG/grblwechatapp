@@ -14,7 +14,8 @@ function loadTaskDetailPage({ modalConfirm = true, getJobResponse } = {}) {
     cancelJob: 0,
     retryJob: 0,
     redirectTo: [],
-    showModal: 0
+    showModal: 0,
+    showToast: []
   };
 
   global.Page = (definition) => {
@@ -28,6 +29,9 @@ function loadTaskDetailPage({ modalConfirm = true, getJobResponse } = {}) {
     },
     redirectTo(options) {
       calls.redirectTo.push(options.url);
+    },
+    showToast(options) {
+      calls.showToast.push(options.title);
     }
   };
 
@@ -219,6 +223,27 @@ async function run() {
     setData() {}
   });
   assert.strictEqual(nonRetryableJob.calls.retryJob, 0);
+  assert.strictEqual(nonRetryableJob.calls.showToast[0], "当前任务不可重试");
+
+  const cancelInvalidJob = loadTaskDetailPage({ modalConfirm: true });
+  let cancelRefreshCount = 0;
+  const cancelCtx = {
+    data: { id: "job_terminal_1", actionLoading: false, actionKind: "", canRetry: false },
+    setData(patch) {
+      this.data = Object.assign({}, this.data, patch);
+    },
+    refreshJob: async () => {
+      cancelRefreshCount += 1;
+    }
+  };
+  require.cache[apiPath].exports.cancelJob = async function cancelJobInvalid() {
+    const error = new Error("Only active jobs can be canceled");
+    error.code = "invalid_cancel_target";
+    throw error;
+  };
+  await cancelInvalidJob.pageDefinition.cancelJob.call(cancelCtx);
+  assert.strictEqual(cancelInvalidJob.calls.showToast[0], "当前任务不可取消");
+  assert.strictEqual(cancelRefreshCount, 1);
 }
 
 run().catch((error) => {

@@ -29,7 +29,11 @@ function request(options) {
           return;
         }
         const message = response.data && (response.data.message || response.data.error);
-        reject(new Error(message || `Request failed: ${response.statusCode}`));
+        const error = new Error(message || `Request failed: ${response.statusCode}`);
+        error.code = response.data && response.data.code ? response.data.code : "";
+        error.statusCode = response.statusCode;
+        error.payload = response.data || null;
+        reject(error);
       },
       fail(error) {
         reject(error);

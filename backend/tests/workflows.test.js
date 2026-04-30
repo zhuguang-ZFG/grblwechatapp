@@ -256,3 +256,131 @@ test("job flow stores structured failure and retryable flag", async () => {
 
   await app.close();
 });
+
+test("retry rejects non-retryable failure target", async () => {
+  const { app } = createTestApp();
+  await app.ready();
+  const token = await registerAndToken(app);
+  const projectId = await createProject(app, token, {
+    processParams: {
+      simulateFailureCode: "PARAM_INVALID"
+    }
+  });
+
+  const previewCreate = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectId}/preview`,
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      forceRegenerate: true
+    }
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  const generationCreate = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectId}/generate`,
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      previewId: previewCreate.json().previewId
+    }
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  const jobCreate = await app.inject({
+    method: "POST",
+    url: "/api/v1/jobs",
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      projectId,
+      generationId: generationCreate.json().generationId,
+      deviceId: "dev_123",
+      executionMode: "offline_file"
+    }
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 180));
+
+  const retryResponse = await app.inject({
+    method: "POST",
+    url: `/api/v1/jobs/${jobCreate.json().jobId}/retry`,
+    headers: {
+      authorization: `Bearer ${token}`
+    }
+  });
+
+  assert.equal(retryResponse.statusCode, 409);
+  assert.equal(retryResponse.json().code, "invalid_retry_target");
+
+  await app.close();
+});
+
+test("cancel rejects invalid terminal target", async () => {
+  const { app } = createTestApp();
+  await app.ready();
+  const token = await registerAndToken(app);
+  const projectId = await createProject(app, token);
+
+  const previewCreate = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectId}/preview`,
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      forceRegenerate: true
+    }
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  const generationCreate = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectId}/generate`,
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      previewId: previewCreate.json().previewId
+    }
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  const jobCreate = await app.inject({
+    method: "POST",
+    url: "/api/v1/jobs",
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      projectId,
+      generationId: generationCreate.json().generationId,
+      deviceId: "dev_123",
+      executionMode: "offline_file"
+    }
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 180));
+
+  const cancelResponse = await app.inject({
+    method: "POST",
+    url: `/api/v1/jobs/${jobCreate.json().jobId}/cancel`,
+    headers: {
+      authorization: `Bearer ${token}`
+    }
+  });
+
+  assert.equal(cancelResponse.statusCode, 409);
+  assert.equal(cancelResponse.json().code, "invalid_cancel_target");
+
+  await app.close();
+});

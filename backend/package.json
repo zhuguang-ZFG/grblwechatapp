@@ -5,7 +5,8 @@
   "type": "commonjs",
   "scripts": {
     "dev": "node src/server.js",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "test:stable": "powershell -ExecutionPolicy Bypass -File ./scripts/test.ps1"
   },
   "dependencies": {
     "better-sqlite3": "^11.7.0",

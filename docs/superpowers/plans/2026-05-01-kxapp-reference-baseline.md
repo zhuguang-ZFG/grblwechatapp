@@ -100,6 +100,7 @@ Important current frontend facts:
 - task detail page now exposes failure reason, retryability, retry suggestions, and guarded cancel/retry confirmation flows
 - first-level page modules now use corrected relative imports for `services/api` and shared utils
 - device selection from the device list now stores the full device object instead of only a raw device id
+- request helper now surfaces backend `code`, `statusCode`, and payload on rejected API errors so page logic can branch on business errors
 
 ### 3.2 Backend
 
@@ -138,6 +139,9 @@ This is now part of the implementation baseline:
   - `DEVICE_BUSY`
   - `GATEWAY_TIMEOUT`
   - `PARAM_INVALID`
+- job action APIs now return operation-level `409` business errors for invalid retry/cancel targets:
+  - `invalid_retry_target`
+  - `invalid_cancel_target`
 
 ### 3.4 Registration flow alignment
 
@@ -160,9 +164,16 @@ cd backend
 npm test
 ```
 
+Stable fallback command when Node ABI changed and `better-sqlite3` needs a rebuild:
+
+```bash
+cd backend
+powershell -ExecutionPolicy Bypass -File ./scripts/test.ps1
+```
+
 Expected current result:
 
-- 11 backend tests passing
+- 13 backend tests passing
 
 Covered behaviors:
 
@@ -177,6 +188,8 @@ Covered behaviors:
 - preview/generation/job async flow
 - jobs list status filtering
 - structured job failure payload with retryable flag
+- invalid retry target returns `409`
+- invalid cancel target returns `409`
 
 ### 4.2 Frontend node-side tests
 
@@ -193,6 +206,9 @@ node tests/status-formatters.test.js
 node tests/task-detail-page.test.js
 node tests/device-page-selection.test.js
 node tests/page-module-imports.test.js
+node tests/failure-code-contract.test.js
+node tests/failure-code-doc-sync.test.js
+node tests/failure-contract-doc.test.js
 ```
 
 Expected current result:

@@ -59,6 +59,24 @@ Task detail page should follow:
    - still display `failure.message` and code
    - fallback suggestion: 可先刷新状态并检查设备与项目参数，再尝试重试任务。
 
+## Operation Error Codes (v0)
+
+These are operation-level business errors (not `failure_json` codes) returned by job action APIs:
+
+| Code | HTTP status | Trigger | Frontend behavior |
+| --- | --- | --- | --- |
+| `invalid_retry_target` | `409` | Retry called for a job that is not `failed` with `retryable=true` | Toast: 当前任务不可重试, then refresh job detail |
+| `invalid_cancel_target` | `409` | Cancel called for a terminal/non-active job | Toast: 当前任务不可取消, then refresh job detail |
+
+Response shape keeps the standard error envelope:
+
+```json
+{
+  "code": "invalid_retry_target",
+  "message": "Only retryable failed jobs can be retried"
+}
+```
+
 ## Backend Evolution Rules
 
 When adding a new failure code:
