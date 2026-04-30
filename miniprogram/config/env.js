@@ -1,4 +1,4 @@
 module.exports = {
-  useMock: true,
-  apiBaseUrl: "https://example.invalid/api/v1"
+  useMock: false,
+  apiBaseUrl: "http://127.0.0.1:3100/api/v1"
 };

@@ -1,0 +1,118 @@
+const crypto = require("crypto");
+
+function now() {
+  return new Date().toISOString();
+}
+
+function parseFailure(value) {
+  return value ? JSON.parse(value) : null;
+}
+
+function createJobsService(app) {
+  const db = app.db;
+
+  function createJob(userId, payload) {
+    const project = db.prepare("SELECT * FROM projects WHERE id = ? AND owner_user_id = ?").get(payload.projectId, userId);
+    const generation = db.prepare("SELECT * FROM generations WHERE id = ? AND project_id = ?").get(payload.generationId, payload.projectId);
+    const device = db.prepare("SELECT * FROM devices WHERE id = ?").get(payload.deviceId);
+
+    if (!project || !generation || !device) {
+      return null;
+    }
+
+    const jobId = `job_${crypto.randomUUID().slice(0, 8)}`;
+    const createdAt = now();
+    db.prepare(`
+      INSERT INTO jobs (id, project_id, generation_id, device_id, status, progress_json, failure_json, created_at, updated_at)
+      VALUES (?, ?, ?, ?, 'queued', ?, '', ?, ?)
+    `).run(jobId, payload.projectId, payload.generationId, payload.deviceId, JSON.stringify({ percent: 0, currentStep: "queued" }), createdAt, createdAt);
+
+    db.prepare("INSERT INTO job_events (id, job_id, status, at) VALUES (?, ?, ?, ?)")
+      .run(`${jobId}_queued`, jobId, "queued", createdAt);
+
+    app.workerRuntime.enqueue(async () => {
+      await app.workerTasks.runJob(jobId);
+    });
+
+    return {
+      jobId,
+      status: "queued"
+    };
+  }
+
+  function listJobs() {
+    const rows = db.prepare("SELECT * FROM jobs ORDER BY updated_at DESC").all();
+    return {
+      items: rows.map((row) => ({
+        id: row.id,
+        projectId: row.project_id,
+        deviceId: row.device_id,
+        status: row.status,
+        progress: JSON.parse(row.progress_json),
+        updatedAt: row.updated_at
+      })),
+      page: 1,
+      pageSize: rows.length,
+      total: rows.length
+    };
+  }
+
+  function getJob(jobId) {
+    const row = db.prepare("SELECT * FROM jobs WHERE id = ?").get(jobId);
+    if (!row) {
+      return null;
+    }
+
+    const events = db.prepare("SELECT status, at FROM job_events WHERE job_id = ? ORDER BY at ASC").all(jobId);
+    return {
+      id: row.id,
+      projectId: row.project_id,
+      generationId: row.generation_id,
+      deviceId: row.device_id,
+      status: row.status,
+      progress: JSON.parse(row.progress_json),
+      failure: parseFailure(row.failure_json),
+      timeline: events
+    };
+  }
+
+  function cancelJob(jobId) {
+    const row = db.prepare("SELECT * FROM jobs WHERE id = ?").get(jobId);
+    if (!row) {
+      return null;
+    }
+
+    db.prepare("UPDATE jobs SET status = ?, progress_json = ?, updated_at = ? WHERE id = ?")
+      .run("canceled", JSON.stringify({ percent: 0, currentStep: "canceled" }), now(), jobId);
+    db.prepare("INSERT INTO job_events (id, job_id, status, at) VALUES (?, ?, ?, ?)")
+      .run(`${jobId}_canceled_${Date.now()}`, jobId, "canceled", now());
+
+    return getJob(jobId);
+  }
+
+  function retryJob(jobId) {
+    const row = db.prepare("SELECT * FROM jobs WHERE id = ?").get(jobId);
+    if (!row) {
+      return null;
+    }
+
+    const projectOwner = db.prepare("SELECT owner_user_id FROM projects WHERE id = ?").get(row.project_id);
+    return createJob(projectOwner.owner_user_id, {
+      projectId: row.project_id,
+      generationId: row.generation_id,
+      deviceId: row.device_id
+    });
+  }
+
+  return {
+    createJob,
+    listJobs,
+    getJob,
+    cancelJob,
+    retryJob
+  };
+}
+
+module.exports = {
+  createJobsService
+};
