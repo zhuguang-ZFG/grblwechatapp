@@ -54,8 +54,8 @@ function showToast(title) {
 
 Page({
   data: {
-    filters: ["全部", "文字", "图片"],
-    filterValues: ["all", "text", "image"],
+    filters: ["全部", "文字", "图片", "已归档"],
+    filterValues: ["all", "text", "image", "archived"],
     filterIndex: 0,
     projects: [],
     actionLoading: false,
@@ -77,22 +77,36 @@ Page({
   async loadProjects() {
     const filter = this.data.filterValues[this.data.filterIndex];
     const allProjects = await api.listProjects();
-    const filtered = filter === "all"
-      ? allProjects
-      : allProjects.filter((item) => item.sourceType === filter);
+    const filtered = allProjects.filter((item) => {
+      const status = item.status || "draft";
+      if (filter === "archived") {
+        return status === "archived";
+      }
+      if (status === "archived") {
+        return false;
+      }
+      if (filter === "all") {
+        return true;
+      }
+      return item.sourceType === filter;
+    });
 
     const devices = await api.listDevices();
     const deviceMap = Object.fromEntries((devices.items || []).map((item) => [item.id, item]));
 
-    const projects = filtered.map((item) => ({
-      ...item,
-      sourceTypeLabel: formatProjectType(item.sourceType),
-      updatedAtLabel: formatProjectUpdatedAt(item.updatedAt),
-      previewStateLabel: formatArtifactState(item.latestPreviewId),
-      generationStateLabel: formatArtifactState(item.latestGenerationId),
-      deviceName: deviceMap[item.selectedDeviceId]?.name || item.selectedDeviceId || "未选择设备",
-      deviceStatusLabel: formatDeviceStatus(deviceMap[item.selectedDeviceId]?.onlineStatus)
-    }));
+    const projects = filtered.map((item) => {
+      const status = item.status || "draft";
+      return {
+        ...item,
+        sourceTypeLabel: formatProjectType(item.sourceType),
+        updatedAtLabel: formatProjectUpdatedAt(item.updatedAt),
+        previewStateLabel: formatArtifactState(item.latestPreviewId),
+        generationStateLabel: formatArtifactState(item.latestGenerationId),
+        deviceName: deviceMap[item.selectedDeviceId]?.name || item.selectedDeviceId || "未选择设备",
+        deviceStatusLabel: formatDeviceStatus(deviceMap[item.selectedDeviceId]?.onlineStatus),
+        isArchived: status === "archived"
+      };
+    });
 
     this.setData({ projects });
   },

@@ -53,10 +53,21 @@ function loadProjectsPage({ actionTapIndex = 0, modalConfirm = true } = {}) {
             id: "prj_1",
             name: "Project A",
             sourceType: "text",
+            status: "draft",
             selectedDeviceId: "dev_123",
             latestPreviewId: "pre_1",
             latestGenerationId: "gen_1",
             updatedAt: "2026-05-01T10:00:00Z"
+          },
+          {
+            id: "prj_2",
+            name: "Archived Project",
+            sourceType: "image",
+            status: "archived",
+            selectedDeviceId: "dev_123",
+            latestPreviewId: null,
+            latestGenerationId: null,
+            updatedAt: "2026-05-01T09:00:00Z"
           }
         ];
       },
@@ -131,8 +142,8 @@ function loadProjectsPage({ actionTapIndex = 0, modalConfirm = true } = {}) {
 function createCtx() {
   return {
     data: {
-      filters: ["全部", "文字", "图片"],
-      filterValues: ["all", "text", "image"],
+      filters: ["全部", "文字", "图片", "已归档"],
+      filterValues: ["all", "text", "image", "archived"],
       filterIndex: 0,
       projects: [],
       actionLoading: false,
@@ -149,6 +160,7 @@ async function run() {
   const duplicateCtx = createCtx();
   Object.assign(duplicateCtx, duplicatePage.pageDefinition);
   await duplicatePage.pageDefinition.loadProjects.call(duplicateCtx);
+  assert.deepStrictEqual(duplicateCtx.data.projects.map((item) => item.id), ["prj_1"]);
   await duplicatePage.pageDefinition.openProjectActions.call(duplicateCtx, {
     currentTarget: { dataset: { id: "prj_1" } }
   });
@@ -177,6 +189,14 @@ async function run() {
   });
   assert.deepStrictEqual(deletePage.calls.deleteProject, []);
   assert.strictEqual(deletePage.calls.showModal, 1);
+
+  const archivedFilterPage = loadProjectsPage();
+  const archivedFilterCtx = createCtx();
+  Object.assign(archivedFilterCtx, archivedFilterPage.pageDefinition);
+  archivedFilterCtx.data.filterIndex = 3;
+  await archivedFilterPage.pageDefinition.loadProjects.call(archivedFilterCtx);
+  assert.deepStrictEqual(archivedFilterCtx.data.projects.map((item) => item.id), ["prj_2"]);
+  assert.strictEqual(archivedFilterCtx.data.projects[0].isArchived, true);
 }
 
 run().catch((error) => {
