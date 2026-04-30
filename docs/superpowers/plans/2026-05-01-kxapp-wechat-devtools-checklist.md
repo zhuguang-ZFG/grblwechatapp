@@ -32,7 +32,29 @@ Before using this checklist, assume the following baseline:
 
 ## 3. Pre-Flight Setup
 
-### 3.1 Backend startup
+### 3.1 Quick preflight script
+
+From `D:\GIT\wechatapp`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\wechat-devtools-preflight.ps1 -DryRun
+```
+
+What it gives you:
+
+- current git commit
+- backend test script path
+- backend startup command
+- checklist path
+- run log path
+
+For a real preflight run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\wechat-devtools-preflight.ps1
+```
+
+### 3.2 Backend startup
 
 From `D:\GIT\wechatapp\backend`:
 
@@ -46,7 +68,7 @@ Expected:
 - backend tests pass
 - server listens on `http://127.0.0.1:3100`
 
-### 3.2 WeChat DevTools target
+### 3.3 WeChat DevTools target
 
 Open the mini program project from:
 
@@ -60,7 +82,7 @@ Recommended checks in DevTools:
 - no broken page import errors
 - network panel shows requests going to `127.0.0.1:3100`
 
-### 3.3 Clean account state
+### 3.4 Clean account state
 
 For the clearest manual loop, start from one of these:
 
