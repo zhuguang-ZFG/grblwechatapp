@@ -1,0 +1,8 @@
+{
+  "id": "usr_123",
+  "nickname": "Alice",
+  "avatarUrl": "https://mock.cdn.example/avatar/alice.png",
+  "mobile": "13800000000",
+  "companyName": "Demo Studio",
+  "profileStatus": "completed"
+}

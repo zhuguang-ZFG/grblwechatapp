@@ -1,0 +1,60 @@
+<view class="screen stack">
+  <view class="section stack">
+    <view class="field">
+      <text class="label">项目名称</text>
+      <input class="input" value="{{project.name}}" bindinput="onNameInput" />
+    </view>
+
+    <view class="field">
+      <text class="label">内容类型</text>
+      <view class="row">
+        <button class="{{project.sourceType === 'text' ? 'primary-btn' : 'ghost-btn'}}" bindtap="setTextMode">文字</button>
+        <button class="{{project.sourceType === 'image' ? 'secondary-btn' : 'ghost-btn'}}" bindtap="setImageMode">图片</button>
+      </view>
+    </view>
+
+    <view wx:if="{{project.sourceType === 'text'}}" class="field">
+      <text class="label">文字内容</text>
+      <textarea class="textarea" value="{{project.content.text}}" bindinput="onTextInput" placeholder="输入要雕刻的文字" />
+    </view>
+
+    <view wx:else class="field">
+      <text class="label">图片素材</text>
+      <view class="input">{{project.content.imageAssetId || '未选择素材'}}</view>
+      <button class="ghost-btn" bindtap="mockUploadImage">使用示例图片</button>
+    </view>
+  </view>
+
+  <view class="section stack">
+    <text class="section-title">尺寸参数</text>
+    <view class="row">
+      <view class="field">
+        <text class="label">宽度(mm)</text>
+        <input class="input" type="digit" value="{{project.layout.widthMm}}" data-field="widthMm" bindinput="onLayoutInput" />
+      </view>
+      <view class="field">
+        <text class="label">高度(mm)</text>
+        <input class="input" type="digit" value="{{project.layout.heightMm}}" data-field="heightMm" bindinput="onLayoutInput" />
+      </view>
+    </view>
+  </view>
+
+  <view class="section stack">
+    <text class="section-title">加工参数</text>
+    <view class="row">
+      <view class="field">
+        <text class="label">速度</text>
+        <input class="input" type="digit" value="{{project.processParams.speed}}" data-field="speed" bindinput="onParamInput" />
+      </view>
+      <view class="field">
+        <text class="label">功率</text>
+        <input class="input" type="digit" value="{{project.processParams.power}}" data-field="power" bindinput="onParamInput" />
+      </view>
+    </view>
+  </view>
+
+  <view class="fixed-cta stack">
+    <button class="ghost-btn" bindtap="saveProject">保存</button>
+    <button class="primary-btn" loading="{{loading}}" bindtap="generatePreview">生成预览</button>
+  </view>
+</view>

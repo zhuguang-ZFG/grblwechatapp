@@ -1,0 +1,13 @@
+{
+  "id": "pre_123",
+  "status": "ready",
+  "previewImageUrl": "https://mock.cdn.example/previews/pre_123.png",
+  "previewSvgUrl": "https://mock.cdn.example/previews/pre_123.svg",
+  "metrics": {
+    "widthMm": 80,
+    "heightMm": 50,
+    "pathCount": 126,
+    "estimatedDurationSec": 420
+  },
+  "warnings": []
+}

@@ -1,0 +1,26 @@
+{
+  "id": "prj_123",
+  "name": "Mother's Day plaque",
+  "sourceType": "text",
+  "selectedDeviceId": "dev_123",
+  "machineProfileId": "mp_123",
+  "materialProfileId": "mat_123",
+  "content": {
+    "text": "Best Mom",
+    "imageAssetId": null
+  },
+  "layout": {
+    "widthMm": 80,
+    "heightMm": 50,
+    "rotationDeg": 0,
+    "align": "center"
+  },
+  "processParams": {
+    "speed": 1000,
+    "power": 65,
+    "passes": 1,
+    "lineSpacing": 1.2
+  },
+  "latestPreviewId": "pre_123",
+  "latestGenerationId": "gen_123"
+}

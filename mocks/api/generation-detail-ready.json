@@ -1,0 +1,12 @@
+{
+  "id": "gen_123",
+  "status": "ready",
+  "summary": {
+    "lineCount": 5204,
+    "estimatedDurationSec": 420,
+    "boundsMm": {
+      "width": 80,
+      "height": 50
+    }
+  }
+}

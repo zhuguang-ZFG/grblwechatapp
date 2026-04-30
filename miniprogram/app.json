@@ -1,0 +1,49 @@
+{
+  "pages": [
+    "pages/auth/login/index",
+    "pages/auth/register/index",
+    "pages/auth/complete-profile/index",
+    "pages/workspace/index",
+    "pages/projects/index",
+    "pages/workspace/editor/index",
+    "pages/preview/index",
+    "pages/tasks/index",
+    "pages/tasks/detail/index",
+    "pages/devices/index",
+    "pages/devices/bind/index",
+    "pages/profile/index"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#f7f4ee",
+    "navigationBarTitleText": "KXApp",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#efe9df",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#7c6f60",
+    "selectedColor": "#1f1a17",
+    "backgroundColor": "#fbf8f3",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/workspace/index",
+        "text": "工作台"
+      },
+      {
+        "pagePath": "pages/tasks/index",
+        "text": "任务"
+      },
+      {
+        "pagePath": "pages/devices/index",
+        "text": "设备"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

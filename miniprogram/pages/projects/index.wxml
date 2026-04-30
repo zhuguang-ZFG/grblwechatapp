@@ -1,0 +1,49 @@
+<view class="screen stack">
+  <view class="hero-panel stack">
+    <text class="eyebrow">项目清单</text>
+    <text class="hero-title">把文本和图片项目收成一页，方便继续编辑、预览和下发</text>
+    <text class="hero-copy">这里先展示 P0 里最关键的项目状态：设备、预览、生成产物。</text>
+  </view>
+
+  <view class="section stack">
+    <picker mode="selector" range="{{filters}}" value="{{filterIndex}}" bindchange="onFilterChange">
+      <view class="picker">当前筛选：{{filters[filterIndex]}}</view>
+    </picker>
+    <view class="row">
+      <button class="primary-btn" bindtap="createTextProject">新建文字项目</button>
+      <button class="secondary-btn" bindtap="createImageProject">新建图片项目</button>
+    </view>
+  </view>
+
+  <view wx:if="{{projects.length}}" class="card-list">
+    <view wx:for="{{projects}}" wx:key="id" class="list-item project-item" bindtap="openProject" data-id="{{item.id}}">
+      <view class="split">
+        <view class="stack" style="gap: 8rpx;">
+          <text class="item-title">{{item.name}}</text>
+          <text class="item-meta">更新于 {{item.updatedAtLabel}}</text>
+        </view>
+        <text class="status-pill">{{item.sourceTypeLabel}}</text>
+      </view>
+
+      <view class="project-grid">
+        <view class="project-meta-block">
+          <text class="project-meta-label">设备</text>
+          <text class="project-meta-value">{{item.deviceName}}</text>
+        </view>
+        <view class="project-meta-block">
+          <text class="project-meta-label">预览</text>
+          <text class="project-meta-value">{{item.previewStateLabel}}</text>
+        </view>
+        <view class="project-meta-block">
+          <text class="project-meta-label">生成</text>
+          <text class="project-meta-value">{{item.generationStateLabel}}</text>
+        </view>
+        <view class="project-meta-block">
+          <text class="project-meta-label">项目 ID</text>
+          <text class="project-meta-value">{{item.id}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+  <view wx:else class="empty">还没有项目，先创建一个吧。</view>
+</view>

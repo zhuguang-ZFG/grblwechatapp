@@ -1,0 +1,45 @@
+<view class="screen stack">
+  <view class="hero-panel stack">
+    <text class="eyebrow">任务详情</text>
+    <text class="hero-title">把这一单从排队到结束的轨迹都摊开看</text>
+    <text class="hero-copy">适合判断卡在哪一段，是预览生成、下发、还是设备执行本身出了问题。</text>
+  </view>
+
+  <view class="section stack">
+    <view class="split">
+      <text class="item-title">{{job.id}}</text>
+      <text class="status-pill {{job.status === 'running' ? 'status-pill-accent' : ''}}">{{job.statusLabel}}</text>
+    </view>
+    <view class="item-meta">项目 {{job.projectId}} · 设备 {{job.deviceId}}</view>
+    <view class="progress-track">
+      <view class="progress-fill" style="width: {{job.progress.percent || 0}}%;"></view>
+    </view>
+    <view class="split">
+      <text class="item-meta">{{job.stepLabel || '-'}}</text>
+      <text class="item-meta">{{job.progress.percent || 0}}%</text>
+    </view>
+  </view>
+
+  <view class="section stack">
+    <text class="section-title">状态时间线</text>
+    <view wx:for="{{job.timeline}}" wx:key="at" class="timeline-row">
+      <text>{{item.statusLabel}}</text>
+      <text class="muted">{{item.at}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{job.failure}}" class="section stack">
+    <text class="section-title">失败原因</text>
+    <text>{{job.failure.message}}</text>
+    <text class="muted">{{job.failure.code}}</text>
+  </view>
+
+  <view class="fixed-cta stack">
+    <view class="row">
+      <button class="ghost-btn" bindtap="refreshJob">刷新状态</button>
+      <button class="secondary-btn" bindtap="viewProject">查看项目</button>
+    </view>
+    <button wx:if="{{canCancel}}" class="danger-btn" bindtap="cancelJob">取消任务</button>
+    <button wx:if="{{canRetry}}" class="primary-btn" bindtap="retryJob">重试任务</button>
+  </view>
+</view>

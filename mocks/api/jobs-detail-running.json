@@ -1,0 +1,22 @@
+{
+  "id": "job_123",
+  "projectId": "prj_123",
+  "generationId": "gen_123",
+  "deviceId": "dev_123",
+  "status": "running",
+  "progress": {
+    "percent": 64,
+    "currentStep": "streaming"
+  },
+  "failure": null,
+  "timeline": [
+    {
+      "status": "queued",
+      "at": "2026-05-01T10:07:00Z"
+    },
+    {
+      "status": "running",
+      "at": "2026-05-01T10:08:00Z"
+    }
+  ]
+}

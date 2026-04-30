@@ -1,0 +1,56 @@
+<view class="screen stack auth-screen">
+  <view class="hero-panel stack" style="margin-top: 28rpx;">
+    <text class="eyebrow">KXApp Mini</text>
+    <text class="hero-title">把设计稿、预览和设备任务收进一个轻入口</text>
+    <text class="hero-copy">小程序负责账号、项目、预览和任务视图，复杂计算放到服务端，操作路径更短。</text>
+    <view class="chip-row">
+      <text class="chip">微信登录</text>
+      <text class="chip">设备状态</text>
+      <text class="chip">任务追踪</text>
+    </view>
+  </view>
+
+  <view class="section stack auth-panel">
+    <view class="stack" style="gap: 8rpx;">
+      <text class="section-title">登录模式</text>
+      <text class="page-note">先用模拟模式走通账号分支，后面再接真实微信授权。</text>
+    </view>
+    <radio-group bindchange="onModeChange" class="mode-list">
+      <label class="mode-option {{mode === 'existing' ? 'mode-option-active' : ''}}">
+        <view class="mode-copy">
+          <text class="item-title">已有账号</text>
+          <text class="item-meta">直接进入工作台与任务页</text>
+        </view>
+        <radio value="existing" checked="{{mode === 'existing'}}" color="#201914" />
+      </label>
+      <label class="mode-option {{mode === 'new' ? 'mode-option-active' : ''}}">
+        <view class="mode-copy">
+          <text class="item-title">新用户注册</text>
+          <text class="item-meta">先补注册资料，再进入主流程</text>
+        </view>
+        <radio value="new" checked="{{mode === 'new'}}" color="#201914" />
+      </label>
+      <label class="mode-option {{mode === 'incomplete' ? 'mode-option-active' : ''}}">
+        <view class="mode-copy">
+          <text class="item-title">待补资料用户</text>
+          <text class="item-meta">恢复会话，继续完善档案</text>
+        </view>
+        <radio value="incomplete" checked="{{mode === 'incomplete'}}" color="#201914" />
+      </label>
+    </radio-group>
+  </view>
+
+  <view class="stats-grid">
+    <view class="stat-card">
+      <text class="stat-label">入口分层</text>
+      <text class="stat-value">3</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-label">主流程</text>
+      <text class="stat-value">注册 / 预览 / 任务</text>
+    </view>
+  </view>
+
+  <button class="primary-btn" loading="{{loading}}" bindtap="handleLogin">微信快捷登录</button>
+  <text class="muted">登录即表示同意用户协议与隐私政策。</text>
+</view>

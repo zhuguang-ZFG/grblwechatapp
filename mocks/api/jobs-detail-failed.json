@@ -1,0 +1,30 @@
+{
+  "id": "job_122",
+  "projectId": "prj_122",
+  "generationId": "gen_122",
+  "deviceId": "dev_123",
+  "status": "failed",
+  "progress": {
+    "percent": 12,
+    "currentStep": "dispatching"
+  },
+  "failure": {
+    "code": "gateway_dispatch_failed",
+    "message": "Gateway could not reach target device",
+    "retryable": true
+  },
+  "timeline": [
+    {
+      "status": "queued",
+      "at": "2026-05-01T09:18:00Z"
+    },
+    {
+      "status": "dispatching",
+      "at": "2026-05-01T09:19:00Z"
+    },
+    {
+      "status": "failed",
+      "at": "2026-05-01T09:20:00Z"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+<view class="screen stack">
+  <view class="hero-panel stack">
+    <text class="eyebrow">账号中心</text>
+    <text class="hero-title">把身份、项目入口和退出动作放在一个干净的收口页</text>
+    <text class="hero-copy">这里先承接账号查看与项目入口，后续再补帮助、协议和更多个人设置。</text>
+  </view>
+
+  <view class="section stack">
+    <text class="item-title">{{user.nickname || '未登录用户'}}</text>
+    <text class="item-meta">{{user.mobile || '-'}}</text>
+    <text class="status-pill">{{user.profileStatus || 'unknown'}}</text>
+  </view>
+
+  <view class="section card-list">
+    <view class="list-item profile-link" bindtap="goProjects">我的项目</view>
+    <view class="list-item profile-link">帮助中心</view>
+    <view class="list-item profile-link">用户协议</view>
+    <view class="list-item profile-link">隐私政策</view>
+  </view>
+
+  <button class="ghost-btn" bindtap="logout">退出登录</button>
+</view>

@@ -1,0 +1,12 @@
+.timeline-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16rpx;
+  padding: 14rpx 0;
+  border-bottom: 1rpx solid #eee3d4;
+}
+
+.timeline-row:last-child {
+  border-bottom: none;
+}

@@ -1,0 +1,25 @@
+<view class="screen stack">
+  <view class="hero-panel stack">
+    <text class="eyebrow">资料补全</text>
+    <text class="hero-title">再补一步，你就能回到工作台继续做单</text>
+    <text class="hero-copy">这里用于恢复不完整账号，把后续设备选择、项目编辑和任务追踪重新接起来。</text>
+  </view>
+
+  <view class="section stack">
+    <view class="field">
+      <text class="label">昵称</text>
+      <input class="input" placeholder="输入显示昵称" value="{{form.nickname}}" bindinput="onNicknameInput" />
+    </view>
+    <view class="field">
+      <text class="label">手机号</text>
+      <input class="input" placeholder="输入手机号" type="number" maxlength="11" value="{{form.mobile}}" bindinput="onMobileInput" />
+    </view>
+    <view class="chip-row">
+      <text class="chip">恢复会话</text>
+      <text class="chip">继续编辑</text>
+      <text class="chip">查看任务</text>
+    </view>
+  </view>
+
+  <button class="primary-btn" loading="{{loading}}" bindtap="submit">保存并进入</button>
+</view>

@@ -1,0 +1,52 @@
+.workspace-screen {
+  gap: 22rpx;
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14rpx;
+}
+
+.quick-tile {
+  min-height: 240rpx;
+  border-radius: 16rpx;
+  padding: 24rpx 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.quick-tile-dark {
+  background: #241b15;
+  color: #fbf8f3;
+}
+
+.quick-tile-warm {
+  background: #dcc09a;
+  color: #251c16;
+}
+
+.quick-kicker {
+  font-size: 22rpx;
+  opacity: 0.72;
+}
+
+.quick-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  line-height: 1.18;
+}
+
+.quick-copy {
+  font-size: 24rpx;
+  line-height: 1.45;
+  opacity: 0.84;
+}
+
+.project-list-card {
+  gap: 14rpx;
+}

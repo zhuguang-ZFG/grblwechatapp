@@ -1,0 +1,75 @@
+<view class="screen stack workspace-screen">
+  <view class="hero-panel stack">
+    <text class="eyebrow">今日工作台</text>
+    <text class="hero-title">从这里发起项目、盯预览、再把任务推到设备</text>
+    <text class="hero-copy">P0 先把闭环做稳：文本 / 图片项目、服务端预览、任务下发与状态回看。</text>
+  </view>
+
+  <view class="stats-grid">
+    <view class="stat-card">
+      <text class="stat-label">最近项目</text>
+      <text class="stat-value">{{projects.length}}</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-label">当前设备</text>
+      <text class="stat-value">{{currentDevice.name || '未选择'}}</text>
+    </view>
+  </view>
+
+  <view class="section stack">
+    <view class="split">
+      <view class="stack" style="gap: 6rpx;">
+        <text class="section-title">当前设备</text>
+        <text class="item-title">{{currentDevice.name || '未选择设备'}}</text>
+        <text class="item-meta">{{currentDevice.model || '先选择一台设备，后续项目会自动带上设备上下文'}}</text>
+      </view>
+      <view class="stack" style="align-items: flex-end; gap: 12rpx;">
+        <text class="status-pill {{currentDevice.onlineStatus === 'online' ? 'status-pill-accent' : ''}}">{{currentDevice.onlineStatusLabel || '离线'}}</text>
+        <button size="mini" class="ghost-btn" bindtap="goDevices">切换设备</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="section stack">
+    <view class="split">
+      <view class="stack" style="gap: 6rpx;">
+        <text class="section-title">快速开始</text>
+        <text class="page-note">按内容类型直接开新项目，后续进入编辑页继续调参数。</text>
+      </view>
+    </view>
+    <view class="quick-grid">
+      <button class="quick-tile quick-tile-dark" bindtap="createTextProject">
+        <text class="quick-kicker">文本项目</text>
+        <text class="quick-title">输入文案并生成路径</text>
+        <text class="quick-copy">适合铭牌、标识、短句雕刻</text>
+      </button>
+      <button class="quick-tile quick-tile-warm" bindtap="createImageProject">
+        <text class="quick-kicker">图片项目</text>
+        <text class="quick-title">上传图像并走预处理</text>
+        <text class="quick-copy">适合图案、徽标、素材导入</text>
+      </button>
+    </view>
+  </view>
+
+  <view class="stack">
+    <view class="split">
+      <view class="stack" style="gap: 6rpx;">
+        <text class="section-title">最近项目</text>
+        <text class="page-note">保留最近编辑过的几个项目，方便继续预览或提交任务。</text>
+      </view>
+      <button size="mini" class="ghost-btn" bindtap="goProjects">查看全部</button>
+    </view>
+    <view wx:if="{{projects.length}}" class="card-list">
+      <view wx:for="{{projects}}" wx:key="id" class="list-item project-list-card" bindtap="openProject" data-id="{{item.id}}">
+        <view class="split">
+          <view class="stack" style="gap: 8rpx;">
+            <text class="item-title">{{item.name}}</text>
+            <text class="item-meta">{{item.sourceType === 'text' ? '文字' : '图片'}} · 设备 {{item.selectedDeviceId || '待选'}}</text>
+          </view>
+          <text class="status-pill">{{item.sourceType === 'text' ? '文本' : '图片'}}</text>
+        </view>
+      </view>
+    </view>
+    <view wx:else class="empty">还没有项目，先新建一个吧。</view>
+  </view>
+</view>

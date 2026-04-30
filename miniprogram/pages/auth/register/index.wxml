@@ -1,0 +1,38 @@
+<view class="screen stack">
+  <view class="hero-panel stack">
+    <text class="eyebrow">新账号开通</text>
+    <text class="hero-title">先把基础资料补齐，再把项目接进主流程</text>
+    <text class="hero-copy">这一步只收最小必要信息，后续设备、模板和工艺参数都在工作台继续补。</text>
+  </view>
+
+  <view class="section stack">
+    <view class="stats-grid">
+      <view class="stat-card">
+        <text class="stat-label">步骤 1</text>
+        <text class="stat-value">账号资料</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-label">步骤 2</text>
+        <text class="stat-value">进入工作台</text>
+      </view>
+    </view>
+    <view class="soft-divider"></view>
+    <view class="field">
+      <text class="label">昵称</text>
+      <input class="input" placeholder="输入显示昵称" value="{{form.nickname}}" bindinput="onNicknameInput" />
+    </view>
+    <view class="field">
+      <text class="label">手机号</text>
+      <input class="input" placeholder="输入手机号" type="number" maxlength="11" value="{{form.mobile}}" bindinput="onMobileInput" />
+    </view>
+    <label class="agreement-row" bindtap="toggleTerms">
+      <checkbox checked="{{form.agreeTerms}}" />
+      <view class="stack" style="gap: 4rpx;">
+        <text>我已阅读并同意相关协议</text>
+        <text class="muted">用于账号识别、服务通知和售后联系</text>
+      </view>
+    </label>
+  </view>
+
+  <button class="primary-btn" loading="{{loading}}" bindtap="submit">完成注册并进入</button>
+</view>

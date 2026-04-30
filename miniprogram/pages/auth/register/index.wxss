@@ -1,0 +1,9 @@
+.agreement-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+  padding: 18rpx;
+  border-radius: 12rpx;
+  background: #f7f1e8;
+  border: 1rpx solid #dccfbe;
+}

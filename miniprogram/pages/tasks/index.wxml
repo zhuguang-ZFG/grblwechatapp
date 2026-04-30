@@ -1,0 +1,34 @@
+<view class="screen stack">
+  <view class="hero-panel stack">
+    <text class="eyebrow">任务面板</text>
+    <text class="hero-title">盯住排队、运行、失败和完成，让任务状态一眼能扫完</text>
+    <text class="hero-copy">P0 先用列表视图把执行状态跑顺，后续再加更细的设备联动与异常分类。</text>
+  </view>
+
+  <view class="section stack">
+    <picker mode="selector" range="{{filters}}" value="{{filterIndex}}" bindchange="onFilterChange">
+      <view class="picker">当前筛选：{{filters[filterIndex]}}</view>
+    </picker>
+  </view>
+
+  <view wx:if="{{jobs.length}}" class="card-list">
+    <view wx:for="{{jobs}}" wx:key="id" class="list-item task-card" bindtap="openJob" data-id="{{item.id}}">
+      <view class="split">
+        <text class="item-title">{{item.id}}</text>
+        <text class="status-pill {{item.status === 'running' ? 'status-pill-accent' : ''}}">{{item.statusLabel}}</text>
+      </view>
+      <view class="item-meta">项目 {{item.projectId}} · 设备 {{item.deviceId}}</view>
+      <view class="split">
+        <text class="item-meta">{{item.stepLabel}}</text>
+        <text class="item-meta">{{item.progress.percent}}%</text>
+      </view>
+      <view class="progress-track">
+        <view class="progress-fill" style="width: {{item.progress.percent}}%;"></view>
+      </view>
+      <view wx:if="{{item.status === 'failed'}}" class="inline-actions">
+        <button size="mini" class="secondary-btn" bindtap="retryJob" data-id="{{item.id}}" catchtap="retryJob">重试任务</button>
+      </view>
+    </view>
+  </view>
+  <view wx:else class="empty">当前筛选下没有任务。</view>
+</view>

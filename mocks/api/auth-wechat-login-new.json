@@ -1,0 +1,5 @@
+{
+  "isNewUser": true,
+  "tempAuthToken": "mock_temp_auth_token_new_user",
+  "nextAction": "register"
+}

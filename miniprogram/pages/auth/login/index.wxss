@@ -1,0 +1,36 @@
+.auth-screen {
+  gap: 24rpx;
+}
+
+.auth-panel {
+  gap: 22rpx;
+}
+
+.mode-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.mode-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 20rpx;
+  border-radius: 14rpx;
+  background: #f7f1e8;
+  border: 1rpx solid #dccfbe;
+}
+
+.mode-option-active {
+  background: #efe3d0;
+  border-color: #c9ae87;
+}
+
+.mode-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8rpx;
+}

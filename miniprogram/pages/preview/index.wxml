@@ -1,0 +1,56 @@
+<view class="screen stack">
+  <view class="hero-panel stack">
+    <text class="eyebrow">预览结果</text>
+    <text class="hero-title">先看服务端生成的结果，再决定要不要把任务发到设备</text>
+    <text class="hero-copy">这一步把路径数量、预计时长和尺寸都摊开看，先减少误发与返工。</text>
+  </view>
+
+  <view class="section stack">
+    <view class="split">
+      <view class="stack" style="gap: 6rpx;">
+        <text class="section-title">预览图</text>
+        <text class="item-meta">当前状态：{{preview.statusLabel || '等待中'}}</text>
+      </view>
+      <text class="status-pill {{preview.status === 'ready' ? 'status-pill-accent' : ''}}">{{preview.statusLabel || '等待中'}}</text>
+    </view>
+    <view class="preview-stage">
+      <text wx:if="{{preview.previewImageUrl}}" class="preview-stage-label">{{preview.previewImageUrl}}</text>
+      <text wx:else class="preview-stage-label">正在生成预览...</text>
+    </view>
+  </view>
+
+  <view class="stats-grid">
+    <view class="stat-card">
+      <text class="stat-label">路径数量</text>
+      <text class="stat-value">{{preview.metrics.pathCount || 0}}</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-label">预计时长</text>
+      <text class="stat-value">{{preview.metrics.estimatedDurationSec || 0}} 秒</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-label">宽度</text>
+      <text class="stat-value">{{preview.metrics.widthMm || 0}} mm</text>
+    </view>
+    <view class="stat-card">
+      <text class="stat-label">高度</text>
+      <text class="stat-value">{{preview.metrics.heightMm || 0}} mm</text>
+    </view>
+  </view>
+
+  <view class="section stack">
+    <text class="section-title">风险提示</text>
+    <view wx:if="{{preview.warnings.length}}" class="stack" style="gap: 10rpx;">
+      <view wx:for="{{preview.warnings}}" wx:key="*this" class="warning-item">{{item}}</view>
+    </view>
+    <view wx:else class="muted">当前没有额外警告。</view>
+  </view>
+
+  <view class="fixed-cta stack">
+    <view class="row">
+      <button class="ghost-btn" bindtap="backToEditor">返回编辑</button>
+      <button class="secondary-btn" bindtap="refreshPreview">刷新预览</button>
+    </view>
+    <button class="primary-btn" loading="{{submitting}}" disabled="{{preview.status !== 'ready'}}" bindtap="submitJob">提交任务</button>
+  </view>
+</view>

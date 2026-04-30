@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "id": "dev_123",
+      "name": "KX Laser A1",
+      "onlineStatus": "online",
+      "model": "esp32_grbl",
+      "lastSeenAt": "2026-05-01T10:08:00Z"
+    },
+    {
+      "id": "dev_124",
+      "name": "KX Laser B2",
+      "onlineStatus": "offline",
+      "model": "esp32_grbl",
+      "lastSeenAt": "2026-04-30T18:20:00Z"
+    }
+  ]
+}

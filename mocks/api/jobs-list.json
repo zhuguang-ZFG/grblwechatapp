@@ -1,0 +1,29 @@
+{
+  "items": [
+    {
+      "id": "job_123",
+      "projectId": "prj_123",
+      "deviceId": "dev_123",
+      "status": "running",
+      "progress": {
+        "percent": 64,
+        "currentStep": "streaming"
+      },
+      "updatedAt": "2026-05-01T10:09:00Z"
+    },
+    {
+      "id": "job_122",
+      "projectId": "prj_122",
+      "deviceId": "dev_123",
+      "status": "failed",
+      "progress": {
+        "percent": 12,
+        "currentStep": "dispatching"
+      },
+      "updatedAt": "2026-05-01T09:20:00Z"
+    }
+  ],
+  "page": 1,
+  "pageSize": 20,
+  "total": 2
+}

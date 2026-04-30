@@ -1,0 +1,11 @@
+{
+  "token": "mock_token_registered_user",
+  "user": {
+    "id": "usr_456",
+    "nickname": "New User",
+    "avatarUrl": "https://mock.cdn.example/avatar/new-user.png",
+    "mobile": "13900000000",
+    "profileStatus": "completed"
+  },
+  "nextAction": "enter_app"
+}
