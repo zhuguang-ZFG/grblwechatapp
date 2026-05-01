@@ -27,6 +27,14 @@ Page({
     wx.navigateTo({ url: "/pages/help/index" });
   },
 
+  goUserAgreement() {
+    wx.navigateTo({ url: "/pages/legal/user-agreement/index" });
+  },
+
+  goPrivacyPolicy() {
+    wx.navigateTo({ url: "/pages/legal/privacy-policy/index" });
+  },
+
   logout() {
     session.clearSession();
     wx.reLaunch({ url: "/pages/auth/login/index" });

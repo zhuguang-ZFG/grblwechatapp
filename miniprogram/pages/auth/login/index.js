@@ -16,6 +16,14 @@ Page({
     this.setData({ mode: event.detail.value });
   },
 
+  goUserAgreement() {
+    wx.navigateTo({ url: "/pages/legal/user-agreement/index" });
+  },
+
+  goPrivacyPolicy() {
+    wx.navigateTo({ url: "/pages/legal/privacy-policy/index" });
+  },
+
   async handleLogin() {
     this.setData({ loading: true });
     try {

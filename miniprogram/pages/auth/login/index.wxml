@@ -53,4 +53,8 @@
 
   <button class="primary-btn" loading="{{loading}}" bindtap="handleLogin">微信快捷登录</button>
   <text class="muted">登录即表示同意用户协议与隐私政策。</text>
+  <view class="stack" style="gap: 8rpx;">
+    <text class="item-meta" bindtap="goUserAgreement">查看用户协议</text>
+    <text class="item-meta" bindtap="goPrivacyPolicy">查看隐私政策</text>
+  </view>
 </view>

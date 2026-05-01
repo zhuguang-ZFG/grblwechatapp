@@ -6,6 +6,13 @@
   </view>
 
   <view class="section stack">
+    <text class="item-title">适用范围</text>
+    <block wx:for="{{scope}}" wx:key="*this">
+      <text class="item-meta">- {{item}}</text>
+    </block>
+  </view>
+
+  <view class="section stack">
     <text class="item-title">推荐操作顺序</text>
     <block wx:for="{{quickFlows}}" wx:key="*this">
       <text class="item-meta">- {{item}}</text>
@@ -15,6 +22,23 @@
   <view class="section stack">
     <text class="item-title">能力边界</text>
     <block wx:for="{{capabilityBoundary}}" wx:key="*this">
+      <text class="item-meta">- {{item}}</text>
+    </block>
+  </view>
+
+  <view class="section stack">
+    <text class="item-title">常见问题</text>
+    <block wx:for="{{faqList}}" wx:key="question">
+      <view class="stack" style="gap: 6rpx;">
+        <text class="item-title">{{item.question}}</text>
+        <text class="item-meta">{{item.answer}}</text>
+      </view>
+    </block>
+  </view>
+
+  <view class="section stack">
+    <text class="item-title">联系方式</text>
+    <block wx:for="{{contact}}" wx:key="*this">
       <text class="item-meta">- {{item}}</text>
     </block>
   </view>

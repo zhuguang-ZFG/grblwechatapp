@@ -13,6 +13,8 @@
     "pages/devices/bind/index",
     "pages/profile/index",
     "pages/help/index",
+    "pages/legal/user-agreement/index",
+    "pages/legal/privacy-policy/index",
     "pages/profiles/material/index",
     "pages/profiles/machine/index",
     "pages/profiles/index",

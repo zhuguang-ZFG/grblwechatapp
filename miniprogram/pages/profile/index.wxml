@@ -14,8 +14,8 @@
   <view class="section card-list">
     <view class="list-item profile-link" bindtap="goProjects">我的项目</view>
     <view class="list-item profile-link" bindtap="goHelpCenter">帮助中心</view>
-    <view class="list-item profile-link">用户协议</view>
-    <view class="list-item profile-link">隐私政策</view>
+    <view class="list-item profile-link" bindtap="goUserAgreement">用户协议</view>
+    <view class="list-item profile-link" bindtap="goPrivacyPolicy">隐私政策</view>
   </view>
 
   <button class="ghost-btn" bindtap="logout">退出登录</button>

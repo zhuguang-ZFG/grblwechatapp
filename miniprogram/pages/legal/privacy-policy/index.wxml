@@ -1,0 +1,25 @@
+<view class="screen stack">
+  <view class="hero-panel stack">
+    <text class="eyebrow">隐私政策</text>
+    <text class="hero-title">KXApp 微信小程序隐私说明（示例版）</text>
+    <text class="hero-copy">本页面用于说明基础数据处理规则，后续可替换为法务正式文本。</text>
+  </view>
+
+  <view class="section stack">
+    <text class="item-title">1. 信息收集</text>
+    <text class="item-meta">- 账号信息：昵称、头像、手机号。</text>
+    <text class="item-meta">- 业务信息：项目内容、任务记录、设备绑定关系。</text>
+  </view>
+
+  <view class="section stack">
+    <text class="item-title">2. 使用目的</text>
+    <text class="item-meta">- 用于身份识别、任务处理、状态展示与问题排查。</text>
+    <text class="item-meta">- 不会在未授权前提下对外公开你的个人信息。</text>
+  </view>
+
+  <view class="section stack">
+    <text class="item-title">3. 安全与保存</text>
+    <text class="item-meta">- 我们会采取合理措施保护数据安全。</text>
+    <text class="item-meta">- 你可通过退出登录、删除内容等方式管理账户数据。</text>
+  </view>
+</view>
