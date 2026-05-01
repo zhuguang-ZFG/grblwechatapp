@@ -7,7 +7,12 @@ const pageFiles = [
   "../miniprogram/pages/workspace/index.js",
   "../miniprogram/pages/projects/index.js",
   "../miniprogram/pages/preview/index.js",
-  "../miniprogram/pages/profile/index.js"
+  "../miniprogram/pages/profile/index.js",
+  "../miniprogram/pages/templates/index.js",
+  "../miniprogram/pages/profiles/material/index.js",
+  "../miniprogram/pages/profiles/machine/index.js",
+  "../miniprogram/pages/profiles/index.js",
+  "../miniprogram/pages/admin/index.js"
 ];
 
 const stubs = [
@@ -47,7 +52,21 @@ function installStubs() {
     createJob: async () => ({ jobId: "job_1" }),
     getMe: async () => ({ nickname: "Alice", mobile: "13800000000", profileStatus: "completed" }),
     retryJob: async () => ({ jobId: "job_1" }),
-    setSelectedDevice() {}
+    setSelectedDevice() {},
+    listTemplates: async () => ({ items: [] }),
+    createTemplate: async () => ({ id: "tpl_new" }),
+    updateTemplate: async () => ({ id: "tpl_new" }),
+    deleteTemplate: async () => ({ deleted: true }),
+    applyTemplate: async () => ({ id: "prj_new" }),
+    getMachineProfile: async () => null,
+    getMaterialProfile: async () => null,
+    listMachineProfiles: async () => ({ items: [] }),
+    listMaterialProfiles: async () => ({ items: [] }),
+    createMachineProfile: async () => ({ id: "mp_new" }),
+    deleteMachineProfile: async () => ({ deleted: true }),
+    createMaterialProfile: async () => ({ id: "mat_new" }),
+    deleteMaterialProfile: async () => ({ deleted: true }),
+    getDashboardStats: async () => ({ projectCount: 0, jobCounts: {}, deviceCount: 0, totalJobs: 0 })
   });
 
   stubModule("../miniprogram/utils/page-auth.js", {

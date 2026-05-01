@@ -41,8 +41,12 @@
     <view class="row">
       <button class="ghost-btn" bindtap="refreshJob">刷新状态</button>
       <button class="secondary-btn" bindtap="viewProject">查看项目</button>
+      <button wx:if="{{!canRetry && job.status === 'failed'}}" class="ghost-btn" bindtap="viewProject">修改项目参数</button>
     </view>
-    <text class="muted" style="text-align: center;">上次刷新：{{lastRefreshedAt}}</text>
+    <text class="muted" style="text-align: center;">
+      {{lastRefreshedAt}}
+      <text wx:if="{{canCancel}}"> · 自动刷新中</text>
+    </text>
     <button
       wx:if="{{canCancel}}"
       class="danger-btn"

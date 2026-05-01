@@ -15,8 +15,10 @@
     </view>
     <view class="preview-stage">
       <text wx:if="{{preview.previewImageUrl}}" class="preview-stage-label">{{preview.previewImageUrl}}</text>
+      <text wx:elif="{{polling}}" class="preview-stage-label">正在轮询预览结果...</text>
       <text wx:else class="preview-stage-label">正在生成预览...</text>
     </view>
+    <text wx:if="{{polling}}" class="item-meta" style="text-align: center;">自动刷新中，完成后将自动更新</text>
   </view>
 
   <view class="stats-grid">
@@ -35,6 +37,19 @@
     <view class="stat-card">
       <text class="stat-label">高度</text>
       <text class="stat-value">{{preview.metrics.heightMm || 0}} mm</text>
+    </view>
+  </view>
+
+  <view wx:if="{{preview.comparison && preview.status === 'ready'}}" class="section stack">
+    <text class="section-title">版本对比</text>
+    <text class="item-meta">{{preview.comparison.summary}}</text>
+    <view wx:if="{{preview.comparison.changes}}" class="project-grid" style="margin-top: 10rpx;">
+      <view wx:for="{{preview.comparison.changes}}" wx:key="*this" class="project-meta-block">
+        <text class="project-meta-label">{{item.label}}</text>
+        <text class="project-meta-value" style="color: {{item.delta > 0 ? '#ff6b6b' : item.delta < 0 ? '#69db7c' : '#ccc'}};">
+          {{item.from}} → {{item.to}} ({{item.delta > 0 ? '+' : ''}}{{item.delta}})
+        </text>
+      </view>
     </view>
   </view>
 

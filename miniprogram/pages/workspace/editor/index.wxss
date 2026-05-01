@@ -1,1 +1,42 @@
-/* shared styles only */
+.canvas-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+  padding: 16rpx;
+  background: #1a1a1a;
+  border-radius: 16rpx;
+  margin-top: 8rpx;
+}
+
+.preview-canvas {
+  width: 100%;
+  height: 280px;
+  border-radius: 8rpx;
+}
+
+.canvas-dim-label {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.overlay-content {
+  width: 85%;
+  max-width: 600rpx;
+  background: #262626;
+  border-radius: 24rpx;
+  padding: 32rpx;
+}

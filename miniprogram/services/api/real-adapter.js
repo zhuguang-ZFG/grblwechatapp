@@ -90,6 +90,10 @@ module.exports = {
     return request({ url: "/image-processors" });
   },
 
+  getDashboardStats() {
+    return request({ url: "/dashboard/stats" });
+  },
+
   bindDevice(bindingCode) {
     return request({
       url: "/devices/bind",
@@ -168,12 +172,23 @@ module.exports = {
   },
 
   uploadImage(projectId, tempFilePath) {
+    const fileName = tempFilePath.split("/").pop() || tempFilePath.split("\\").pop() || "image.png";
+    let data = { fileName };
+
+    if (typeof wx !== "undefined" && wx.getFileSystemManager) {
+      try {
+        const fs = wx.getFileSystemManager();
+        const base64 = fs.readFileSync(tempFilePath, "base64");
+        data.data = base64;
+      } catch (e) {
+        console.error("Failed to read file for upload", e);
+      }
+    }
+
     return request({
       url: `/projects/${projectId}/assets`,
       method: "POST",
-      data: {
-        fileName: tempFilePath.split("/").pop() || tempFilePath.split("\\").pop() || "image.png"
-      }
+      data
     });
   },
 
@@ -237,6 +252,99 @@ module.exports = {
     return request({
       url: `/jobs/${jobId}/cancel`,
       method: "POST"
+    });
+  },
+
+  listTemplates(category) {
+    const query = category ? `?category=${encodeURIComponent(category)}` : "";
+    return request({ url: `/templates${query}` });
+  },
+
+  getTemplate(templateId) {
+    return request({ url: `/templates/${templateId}` });
+  },
+
+  applyTemplate(templateId) {
+    return request({
+      url: `/templates/${templateId}/apply`,
+      method: "POST"
+    });
+  },
+
+  createTemplate(payload) {
+    return request({
+      url: "/templates",
+      method: "POST",
+      data: payload
+    });
+  },
+
+  updateTemplate(templateId, payload) {
+    return request({
+      url: `/templates/${templateId}`,
+      method: "PUT",
+      data: payload
+    });
+  },
+
+  deleteTemplate(templateId) {
+    return request({
+      url: `/templates/${templateId}`,
+      method: "DELETE"
+    });
+  },
+
+  getMachineProfile(profileId) {
+    return request({ url: `/machine-profiles/${profileId}` });
+  },
+
+  createMachineProfile(payload) {
+    return request({
+      url: "/machine-profiles",
+      method: "POST",
+      data: payload
+    });
+  },
+
+  updateMachineProfile(profileId, payload) {
+    return request({
+      url: `/machine-profiles/${profileId}`,
+      method: "PUT",
+      data: payload
+    });
+  },
+
+  deleteMachineProfile(profileId) {
+    return request({
+      url: `/machine-profiles/${profileId}`,
+      method: "DELETE"
+    });
+  },
+
+  getMaterialProfile(profileId) {
+    return request({ url: `/material-profiles/${profileId}` });
+  },
+
+  createMaterialProfile(payload) {
+    return request({
+      url: "/material-profiles",
+      method: "POST",
+      data: payload
+    });
+  },
+
+  updateMaterialProfile(profileId, payload) {
+    return request({
+      url: `/material-profiles/${profileId}`,
+      method: "PUT",
+      data: payload
+    });
+  },
+
+  deleteMaterialProfile(profileId) {
+    return request({
+      url: `/material-profiles/${profileId}`,
+      method: "DELETE"
     });
   },
 

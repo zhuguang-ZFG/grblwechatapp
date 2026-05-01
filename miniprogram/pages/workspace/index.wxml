@@ -51,6 +51,36 @@
     </view>
   </view>
 
+  <view class="section stack">
+    <view class="split">
+      <view class="stack" style="gap: 6rpx;">
+        <text class="section-title">模板库</text>
+        <text class="page-note">使用预设模板快速创建项目，参数已预配置。</text>
+      </view>
+      <button size="mini" class="ghost-btn" bindtap="goTemplates">浏览模板</button>
+    </view>
+  </view>
+
+  <view class="section stack">
+    <view class="split">
+      <view class="stack" style="gap: 6rpx;">
+        <text class="section-title">配置管理</text>
+        <text class="page-note">管理设备配置和材料配置，预设加工参数。</text>
+      </view>
+      <button size="mini" class="ghost-btn" bindtap="goProfiles">管理配置</button>
+    </view>
+  </view>
+
+  <view class="section stack">
+    <view class="split">
+      <view class="stack" style="gap: 6rpx;">
+        <text class="section-title">管理面板</text>
+        <text class="page-note">查看项目/任务统计和设备状态。</text>
+      </view>
+      <button size="mini" class="ghost-btn" bindtap="goAdmin">管理面板</button>
+    </view>
+  </view>
+
   <view class="stack">
     <view class="split">
       <view class="stack" style="gap: 6rpx;">

@@ -47,6 +47,7 @@ function applySchema(db) {
       default_speed REAL DEFAULT 1200,
       default_power REAL DEFAULT 70,
       default_line_spacing REAL DEFAULT 1.0,
+      owner_user_id TEXT DEFAULT '',
       created_at TEXT NOT NULL
     );
 
@@ -58,6 +59,7 @@ function applySchema(db) {
       recommended_power REAL DEFAULT 65,
       recommended_passes INTEGER DEFAULT 1,
       notes TEXT DEFAULT '',
+      owner_user_id TEXT DEFAULT '',
       created_at TEXT NOT NULL
     );
 
@@ -136,6 +138,21 @@ function applySchema(db) {
       name TEXT NOT NULL,
       type TEXT NOT NULL,
       default_params_json TEXT NOT NULL,
+      sort_order INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS templates (
+      id TEXT PRIMARY KEY,
+      owner_user_id TEXT DEFAULT '',
+      name TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      source_type TEXT NOT NULL,
+      category TEXT DEFAULT '',
+      content_json TEXT NOT NULL,
+      layout_json TEXT NOT NULL,
+      process_params_json TEXT NOT NULL,
+      preview_image_url TEXT DEFAULT '',
       sort_order INTEGER DEFAULT 0,
       created_at TEXT NOT NULL
     );

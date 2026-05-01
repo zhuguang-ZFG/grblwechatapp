@@ -1,0 +1,99 @@
+<view class="screen stack">
+  <view class="hero-panel stack">
+    <text class="eyebrow">管理面板</text>
+    <text class="hero-title">概览设备状态、任务统计和最近活动</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty">加载中...</view>
+
+  <view wx:elif="{{stats}}" class="stack">
+    <!-- Stats cards -->
+    <view class="stats-grid">
+      <view class="stat-card">
+        <text class="stat-label">项目总数</text>
+        <text class="stat-value">{{stats.projectCount}}</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-label">设备数量</text>
+        <text class="stat-value">{{stats.deviceCount}}</text>
+      </view>
+      <view class="stat-card">
+        <text class="stat-label">任务总数</text>
+        <text class="stat-value">{{stats.totalJobs}}</text>
+      </view>
+    </view>
+
+    <!-- Job status breakdown -->
+    <view class="section stack">
+      <text class="section-title">任务状态分布</text>
+      <view class="project-grid">
+        <view class="project-meta-block">
+          <text class="project-meta-label">排队中</text>
+          <text class="project-meta-value">{{stats.jobCounts.queued}}</text>
+        </view>
+        <view class="project-meta-block">
+          <text class="project-meta-label">运行中</text>
+          <text class="project-meta-value">{{stats.jobCounts.running}}</text>
+        </view>
+        <view class="project-meta-block">
+          <text class="project-meta-label">已完成</text>
+          <text class="project-meta-value">{{stats.jobCounts.completed}}</text>
+        </view>
+        <view class="project-meta-block">
+          <text class="project-meta-label">失败</text>
+          <text class="project-meta-value" style="color: #ff6b6b;">{{stats.jobCounts.failed}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Device status -->
+    <view class="section stack">
+      <text class="section-title">设备状态</text>
+      <view wx:if="{{devices.length}}" class="card-list">
+        <view wx:for="{{devices}}" wx:key="id" class="list-item" bindtap="viewDevice">
+          <view class="split">
+            <view class="stack" style="gap: 6rpx;">
+              <text class="item-title">{{item.name}}</text>
+              <text class="item-meta">{{item.model}} · {{item.serialNo}}</text>
+            </view>
+            <text class="status-pill {{item.onlineStatus === 'online' ? 'status-pill-accent' : ''}}">
+              {{item.onlineStatus === 'online' ? '在线' : '离线'}}
+            </text>
+          </view>
+          <text class="item-meta">最后在线：{{item.lastSeenAt}}</text>
+        </view>
+      </view>
+      <view wx:else class="muted">暂未绑定设备</view>
+    </view>
+
+    <!-- Recent jobs with filter -->
+    <view class="section stack">
+      <view class="split">
+        <text class="section-title">最近任务</text>
+        <view class="row" style="gap: 8rpx;">
+          <button class="{{statusFilter === 'all' ? 'primary-btn' : 'ghost-btn'}}" style="font-size: 22rpx; padding: 8rpx 12rpx;" data-filter="all" bindtap="onStatusFilterChange">全部</button>
+          <button class="{{statusFilter === 'failed' ? 'primary-btn' : 'ghost-btn'}}" style="font-size: 22rpx; padding: 8rpx 12rpx;" data-filter="failed" bindtap="onStatusFilterChange">失败</button>
+          <button class="{{statusFilter === 'running' ? 'primary-btn' : 'ghost-btn'}}" style="font-size: 22rpx; padding: 8rpx 12rpx;" data-filter="running" bindtap="onStatusFilterChange">运行中</button>
+        </view>
+      </view>
+      <view wx:if="{{jobs.length}}" class="card-list">
+        <view wx:for="{{jobs}}" wx:key="id" class="list-item" bindtap="viewJob" data-id="{{item.id}}">
+          <view class="split">
+            <text class="item-title">{{item.id}}</text>
+            <text class="status-pill {{item.status === 'running' ? 'status-pill-accent' : ''}}">{{item.status}}</text>
+          </view>
+          <text class="item-meta">进度：{{item.progress ? item.progress.percent : 0}}%</text>
+        </view>
+      </view>
+      <view wx:else class="muted">暂无匹配任务</view>
+    </view>
+
+    <!-- Quick actions -->
+    <view class="section stack">
+      <text class="section-title">快捷操作</text>
+      <view class="row" style="gap: 16rpx; flex-wrap: wrap;">
+        <button class="ghost-btn" bindtap="viewDevice">设备管理</button>
+      </view>
+    </view>
+  </view>
+</view>

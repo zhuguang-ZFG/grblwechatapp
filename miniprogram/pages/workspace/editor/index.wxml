@@ -1,5 +1,16 @@
 <view class="screen stack">
   <view class="section stack">
+    <view class="split">
+      <text class="section-title">实时预览</text>
+      <button size="mini" class="ghost-btn" bindtap="togglePreview">{{showPreview ? '收起预览' : '展开预览'}}</button>
+    </view>
+    <view wx:if="{{showPreview}}" class="canvas-wrapper">
+      <canvas type="2d" id="editorPreviewCanvas" class="preview-canvas"></canvas>
+      <text class="canvas-dim-label">{{project.layout.widthMm}} × {{project.layout.heightMm}} mm</text>
+    </view>
+  </view>
+
+  <view class="section stack">
     <view class="field">
       <text class="label">项目名称</text>
       <input class="input" value="{{project.name}}" bindinput="onNameInput" />
@@ -39,9 +50,9 @@
     <view wx:if="{{project.sourceType === 'text'}}" class="field">
       <text class="label">对齐方式</text>
       <view class="row">
-        <button class="{{project.layout.align === 'left' ? 'ghost-btn' : 'ghost-btn'}}" data-value="left" bindtap="onAlignChange">左对齐</button>
+        <button class="{{project.layout.align === 'left' ? 'primary-btn' : 'ghost-btn'}}" data-value="left" bindtap="onAlignChange">左对齐</button>
         <button class="{{project.layout.align === 'center' ? 'primary-btn' : 'ghost-btn'}}" data-value="center" bindtap="onAlignChange">居中</button>
-        <button class="{{project.layout.align === 'right' ? 'ghost-btn' : 'ghost-btn'}}" data-value="right" bindtap="onAlignChange">右对齐</button>
+        <button class="{{project.layout.align === 'right' ? 'primary-btn' : 'ghost-btn'}}" data-value="right" bindtap="onAlignChange">右对齐</button>
       </view>
     </view>
 
@@ -122,10 +133,42 @@
         <input class="input" type="digit" value="{{project.processParams.passes}}" data-field="passes" bindinput="onParamInput" />
       </view>
     </view>
+    <view class="row">
+      <view class="field">
+        <text class="label">行距(mm)</text>
+        <input class="input" type="digit" value="{{project.processParams.lineSpacing}}" data-field="lineSpacing" bindinput="onParamInput" />
+      </view>
+    </view>
   </view>
 
   <view class="fixed-cta stack">
+    <button class="ghost-btn" bindtap="showSaveTemplate">保存为模板</button>
     <button class="ghost-btn" bindtap="saveProject">保存</button>
     <button class="primary-btn" loading="{{loading}}" bindtap="generatePreview">生成预览</button>
+  </view>
+
+  <!-- Save as template overlay -->
+  <view wx:if="{{showSaveTemplate}}" class="overlay" bindtap="cancelSaveTemplate">
+    <view class="overlay-content" catchtap=""><view class="section stack">
+      <text class="section-title">保存为模板</text>
+      <view class="field">
+        <text class="label">模板名称</text>
+        <input class="input" value="{{templateName}}" bindinput="onTemplateNameInput" placeholder="输入模板名称" />
+      </view>
+      <view class="field">
+        <text class="label">描述</text>
+        <input class="input" value="{{templateDescription}}" bindinput="onTemplateDescInput" placeholder="输入模板描述（选填）" />
+      </view>
+      <view class="field">
+        <text class="label">分类</text>
+        <picker mode="selector" range="['自定义','礼品','标牌','工艺']" value="0" bindchange="onTemplateCategoryChange">
+          <view class="input">{{templateCategory}}</view>
+        </picker>
+      </view>
+      <view class="row" style="justify-content: flex-end; gap: 16rpx; margin-top: 20rpx;">
+        <button class="ghost-btn" bindtap="cancelSaveTemplate">取消</button>
+        <button class="primary-btn" bindtap="confirmSaveTemplate">确认保存</button>
+      </view>
+    </view></view>
   </view>
 </view>

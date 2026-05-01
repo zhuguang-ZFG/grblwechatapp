@@ -1,0 +1,57 @@
+<view class="screen stack">
+  <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:elif="{{!profile}}" class="empty">未找到该设备配置。</view>
+  <view wx:else class="stack">
+    <view class="hero-panel stack">
+      <text class="eyebrow">设备配置</text>
+      <text class="hero-title">{{profile.name}}</text>
+      <text class="hero-copy">设备型号：{{profile.deviceModel}}</text>
+    </view>
+
+    <view class="section stack">
+      <text class="section-title">工作区域</text>
+      <view class="project-grid">
+        <view class="project-meta-block">
+          <text class="project-meta-label">宽度</text>
+          <text class="project-meta-value">{{profile.workArea.widthMm}} mm</text>
+        </view>
+        <view class="project-meta-block">
+          <text class="project-meta-label">高度</text>
+          <text class="project-meta-value">{{profile.workArea.heightMm}} mm</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section stack">
+      <text class="section-title">配置详情</text>
+      <view class="project-grid">
+        <view class="project-meta-block">
+          <text class="project-meta-label">原点模式</text>
+          <text class="project-meta-value">{{profile.originMode}}</text>
+        </view>
+        <view class="project-meta-block">
+          <text class="project-meta-label">离线打印</text>
+          <text class="project-meta-value">{{profile.supportsOfflinePrint ? '支持' : '不支持'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section stack">
+      <text class="section-title">默认参数</text>
+      <view class="project-grid">
+        <view class="project-meta-block">
+          <text class="project-meta-label">速度</text>
+          <text class="project-meta-value">{{profile.defaultParams.speed}} mm/s</text>
+        </view>
+        <view class="project-meta-block">
+          <text class="project-meta-label">功率</text>
+          <text class="project-meta-value">{{profile.defaultParams.power}}%</text>
+        </view>
+        <view class="project-meta-block">
+          <text class="project-meta-label">行间距</text>
+          <text class="project-meta-value">{{profile.defaultParams.lineSpacing}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,34 @@
+<view class="screen stack">
+  <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:elif="{{!profile}}" class="empty">未找到该材料配置。</view>
+  <view wx:else class="stack">
+    <view class="hero-panel stack">
+      <text class="eyebrow">材料配置</text>
+      <text class="hero-title">{{profile.name}}</text>
+      <text class="hero-copy">分类：{{profile.category || '未分类'}}</text>
+    </view>
+
+    <view class="section stack">
+      <text class="section-title">推荐参数</text>
+      <view class="project-grid">
+        <view class="project-meta-block">
+          <text class="project-meta-label">速度</text>
+          <text class="project-meta-value">{{profile.recommendedParams.speed}}</text>
+        </view>
+        <view class="project-meta-block">
+          <text class="project-meta-label">功率</text>
+          <text class="project-meta-value">{{profile.recommendedParams.power}}%</text>
+        </view>
+        <view class="project-meta-block">
+          <text class="project-meta-label">加工次数</text>
+          <text class="project-meta-value">{{profile.recommendedParams.passes}} 次</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{profile.notes}}" class="section stack">
+      <text class="section-title">备注</text>
+      <text class="item-meta">{{profile.notes}}</text>
+    </view>
+  </view>
+</view>

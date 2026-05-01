@@ -81,6 +81,24 @@ Page({
     await this.refreshJob();
   },
 
+  onUnload() {
+    this._stopPolling();
+  },
+
+  _startPolling() {
+    this._stopPolling();
+    this._pollTimer = setInterval(() => {
+      this.refreshJob();
+    }, 3000);
+  },
+
+  _stopPolling() {
+    if (this._pollTimer) {
+      clearInterval(this._pollTimer);
+      this._pollTimer = null;
+    }
+  },
+
   async refreshJob() {
     const rawJob = await api.getJob(this.data.id);
     let projectName = rawJob.projectId;
@@ -116,9 +134,17 @@ Page({
       }))
     };
     const canRetry = job.status === "failed" && job.failure && job.failure.retryable;
+    const isRunning = ["queued", "dispatching", "running"].includes(job.status);
+    if (typeof this._startPolling === "function") {
+      if (isRunning) {
+        this._startPolling();
+      } else {
+        this._stopPolling();
+      }
+    }
     this.setData({
       job,
-      canCancel: ["queued", "dispatching", "running"].includes(job.status),
+      canCancel: isRunning,
       canRetry,
       lastRefreshedAt: new Date().toISOString(),
       retryHint: job.status === "failed" && job.failure && !job.failure.retryable

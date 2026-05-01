@@ -11,7 +11,9 @@ Page({
       metrics: {},
       warnings: []
     },
-    submitting: false
+    submitting: false,
+    polling: false,
+    generationId: ""
   },
 
   async onLoad(options) {
@@ -22,23 +24,64 @@ Page({
     await this.refreshPreview();
   },
 
-  async refreshPreview() {
-    const rawPreview = await api.getPreview(this.data.previewId);
-    const preview = {
-      ...rawPreview,
-      statusLabel: formatPreviewStatus(rawPreview.status)
-    };
-    this.setData({ preview });
-    if (preview.status === "processing") {
-      setTimeout(() => this.refreshPreview(), 500);
+  onUnload() {
+    this._stopPolling();
+  },
+
+  _stopPolling() {
+    this._pollCount = 0;
+    if (this._pollTimer) {
+      clearTimeout(this._pollTimer);
+      this._pollTimer = null;
     }
   },
 
+  async refreshPreview() {
+    this.setData({ polling: true });
+    try {
+      const rawPreview = await api.getPreview(this.data.previewId);
+      const preview = {
+        ...rawPreview,
+        statusLabel: formatPreviewStatus(rawPreview.status)
+      };
+      // Transform comparison changes object into array with labels
+      if (preview.comparison && preview.comparison.changes) {
+        const labelMap = { pathCount: "路径数", estimatedDurationSec: "预计时长(秒)", widthMm: "宽度(mm)", heightMm: "高度(mm)" };
+        preview.comparison.changes = Object.entries(preview.comparison.changes).map(([key, val]) => ({
+          key,
+          label: labelMap[key] || key,
+          from: val.from,
+          to: val.to,
+          delta: val.delta
+        }));
+      }
+      this.setData({ preview, polling: false });
+      if (preview.status === "processing") {
+        this._pollPreview();
+      }
+    } catch {
+      this.setData({ polling: false });
+    }
+  },
+
+  _pollPreview() {
+    this._pollCount = (this._pollCount || 0) + 1;
+    if (this._pollCount > 30) {
+      this.setData({ polling: false });
+      return;
+    }
+    this._pollTimer = setTimeout(() => {
+      this.refreshPreview();
+    }, 500);
+  },
+
   backToEditor() {
+    this._stopPolling();
     wx.navigateBack();
   },
 
   async regeneratePreview() {
+    this._stopPolling();
     wx.showLoading({ title: "重新生成中..." });
     try {
       const result = await api.createPreview(this.data.projectId);
@@ -56,9 +99,13 @@ Page({
       if (!generationId) {
         const created = await api.createGeneration(this.data.projectId, this.data.previewId);
         generationId = created.generationId;
+        this.setData({ generationId });
         let generation = await api.getGeneration(generationId);
-        if (generation.status !== "ready") {
+        let pollCount = 0;
+        while (generation.status !== "ready" && pollCount < 20) {
+          await new Promise((r) => setTimeout(r, 500));
           generation = await api.getGeneration(generationId);
+          pollCount++;
         }
       }
       const project = await api.getProject(this.data.projectId);

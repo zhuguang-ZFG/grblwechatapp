@@ -7,6 +7,7 @@ const seedMachineProfiles = require("../../seeds/machine-profiles");
 const seedMaterialProfiles = require("../../seeds/material-profiles");
 const seedFonts = require("../../seeds/fonts");
 const seedImageProcessors = require("../../seeds/image-processors");
+const seedTemplates = require("../../seeds/templates");
 
 function ensureParentDir(filePath) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -30,10 +31,10 @@ function createDatabase(databaseFile) {
   const insertMachineProfile = db.prepare(`
     INSERT OR IGNORE INTO machine_profiles (
       id, device_model, name, work_area_width_mm, work_area_height_mm, origin_mode,
-      supports_offline_print, default_speed, default_power, default_line_spacing, created_at
+      supports_offline_print, default_speed, default_power, default_line_spacing, owner_user_id, created_at
     ) VALUES (
       @id, @device_model, @name, @work_area_width_mm, @work_area_height_mm, @origin_mode,
-      @supports_offline_print, @default_speed, @default_power, @default_line_spacing, @created_at
+      @supports_offline_print, @default_speed, @default_power, @default_line_spacing, '', @created_at
     )
   `);
 
@@ -41,9 +42,9 @@ function createDatabase(databaseFile) {
 
   const insertMaterialProfile = db.prepare(`
     INSERT OR IGNORE INTO material_profiles (
-      id, name, category, recommended_speed, recommended_power, recommended_passes, notes, created_at
+      id, name, category, recommended_speed, recommended_power, recommended_passes, notes, owner_user_id, created_at
     ) VALUES (
-      @id, @name, @category, @recommended_speed, @recommended_power, @recommended_passes, @notes, @created_at
+      @id, @name, @category, @recommended_speed, @recommended_power, @recommended_passes, @notes, '', @created_at
     )
   `);
 
@@ -68,6 +69,18 @@ function createDatabase(databaseFile) {
   `);
 
   seedImageProcessors.forEach((ip) => insertImageProcessor.run(ip));
+
+  const insertTemplate = db.prepare(`
+    INSERT OR IGNORE INTO templates (
+      id, owner_user_id, name, description, source_type, category, content_json, layout_json,
+      process_params_json, preview_image_url, sort_order, created_at
+    ) VALUES (
+      @id, @owner_user_id, @name, @description, @source_type, @category, @content_json, @layout_json,
+      @process_params_json, @preview_image_url, @sort_order, @created_at
+    )
+  `);
+
+  seedTemplates.forEach((tpl) => insertTemplate.run(tpl));
 
   return db;
 }

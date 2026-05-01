@@ -49,5 +49,17 @@ Page({
 
   goProjects() {
     wx.navigateTo({ url: "/pages/projects/index" });
+  },
+
+  goTemplates() {
+    wx.navigateTo({ url: "/pages/templates/index" });
+  },
+
+  goProfiles() {
+    wx.navigateTo({ url: "/pages/profiles/index" });
+  },
+
+  goAdmin() {
+    wx.navigateTo({ url: "/pages/admin/index" });
   }
 });

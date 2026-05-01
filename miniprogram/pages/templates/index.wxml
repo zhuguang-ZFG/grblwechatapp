@@ -1,0 +1,56 @@
+<view class="screen stack">
+  <view class="hero-panel stack">
+    <text class="eyebrow">模板库</text>
+    <text class="hero-title">从预设模板快速开始，一键创建项目</text>
+    <text class="hero-copy">模板已预设好内容参数和工艺参数，选择后自动进入编辑页微调。</text>
+  </view>
+
+  <view class="section stack">
+    <view class="field">
+      <text class="label">分类筛选</text>
+      <picker mode="selector" range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+        <view class="input">{{categories[categoryIndex]}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <view wx:if="{{templates.length}}" class="card-list">
+    <view wx:for="{{templates}}" wx:key="id" class="list-item" style="flex-direction: column; gap: 14rpx; align-items: stretch;">
+      <view class="split">
+        <view class="stack" style="gap: 6rpx;">
+          <text class="item-title">{{item.name}}</text>
+          <text class="item-meta" style="line-height: 1.5;">{{item.description}}</text>
+        </view>
+        <text class="status-pill">{{item.category}}</text>
+      </view>
+      <view class="row" style="justify-content: space-between; align-items: center;">
+        <text class="item-meta">{{item.sourceType === 'text' ? '文字项目' : '图片项目'}}</text>
+        <view class="row" style="gap: 8rpx;">
+          <button wx:if="{{!item.isSystem}}" class="ghost-btn" style="font-size: 24rpx; padding: 12rpx 16rpx;" bindtap="showEdit" data-template="{{item}}">编辑</button>
+          <button wx:if="{{!item.isSystem}}" class="ghost-btn" style="font-size: 24rpx; padding: 12rpx 16rpx; color: #ff6b6b;" bindtap="deleteTemplate" data-id="{{item.id}}">删除</button>
+          <button class="primary-btn" style="font-size: 26rpx; padding: 16rpx 20rpx;" bindtap="applyTemplate" data-id="{{item.id}}" loading="{{applyingId === item.id}}" disabled="{{applyingId}}">使用模板</button>
+        </view>
+      </view>
+    </view>
+  </view>
+  <view wx:else class="empty">该分类暂无模板。</view>
+
+  <!-- Edit template overlay -->
+  <view wx:if="{{editingTemplate}}" class="overlay" bindtap="cancelEdit">
+    <view class="overlay-content" catchtap=""><view class="section stack">
+      <text class="section-title">编辑模板</text>
+      <view class="field">
+        <text class="label">模板名称</text>
+        <input class="input" value="{{editName}}" bindinput="onEditNameInput" placeholder="输入模板名称" />
+      </view>
+      <view class="field">
+        <text class="label">描述</text>
+        <input class="input" value="{{editDescription}}" bindinput="onEditDescInput" placeholder="输入模板描述" />
+      </view>
+      <view class="row" style="justify-content: flex-end; gap: 16rpx; margin-top: 20rpx;">
+        <button class="ghost-btn" bindtap="cancelEdit">取消</button>
+        <button class="primary-btn" bindtap="confirmEdit">保存</button>
+      </view>
+    </view></view>
+  </view>
+</view>

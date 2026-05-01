@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const path = require("path");
 
 function now() {
   return new Date().toISOString();
@@ -178,7 +179,18 @@ function createProjectsService(app) {
       return null;
     }
     const assetId = `ast_${crypto.randomUUID().slice(0, 8)}`;
-    return { assetId };
+    const ext = path.extname(payload.fileName || "image.png").toLowerCase() || ".png";
+    const relativePath = `assets/${assetId}${ext}`;
+
+    if (payload.data) {
+      const buffer = Buffer.from(payload.data, "base64");
+      app.artifacts.writeBinary(relativePath, buffer);
+    }
+
+    return {
+      assetId,
+      assetUrl: `/storage/${relativePath}`
+    };
   }
 
   return {
