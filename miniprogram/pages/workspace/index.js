@@ -27,16 +27,15 @@ Page({
     this.setData({ currentDevice, projects });
   },
 
-  async createTextProject() {
-    const selectedDevice = api.getSelectedDevice();
-    const result = await api.createProject("text", selectedDevice && selectedDevice.id);
-    wx.navigateTo({ url: `/pages/workspace/editor/index?id=${result.id}` });
-  },
-
-  async createImageProject() {
-    const selectedDevice = api.getSelectedDevice();
-    const result = await api.createProject("image", selectedDevice && selectedDevice.id);
-    wx.navigateTo({ url: `/pages/workspace/editor/index?id=${result.id}` });
+  async createProject(event) {
+    const sourceType = event.currentTarget.dataset.sourceType;
+    try {
+      const selectedDevice = api.getSelectedDevice();
+      const result = await api.createProject(sourceType, selectedDevice && selectedDevice.id);
+      wx.navigateTo({ url: `/pages/workspace/editor/index?id=${result.id}` });
+    } catch (error) {
+      wx.showToast({ title: "创建项目失败", icon: "none" });
+    }
   },
 
   openProject(event) {
