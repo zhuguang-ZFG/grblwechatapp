@@ -61,6 +61,7 @@ function canTransition(def, from, to) {
 }
 
 function assertTransition(def, from, to, label) {
+  if (from === to) return; // Same-status progress update is always allowed
   if (!canTransition(def, from, to)) {
     const name = label || "entity";
     throw new Error(`Invalid ${name} state transition: "${from}" -> "${to}"`);

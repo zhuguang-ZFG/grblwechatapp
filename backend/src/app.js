@@ -130,6 +130,8 @@ function buildApp(options = {}) {
   app.addHook("onClose", async () => {
     app.workerRuntime.close();
     app.gatewayService.close();
+    app.previewsService.close();
+    app.generationsService.close();
     app.db.close();
   });
 
