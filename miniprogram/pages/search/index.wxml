@@ -1,0 +1,54 @@
+<view class="screen stack">
+  <view class="hero-panel stack">
+    <text class="eyebrow">搜索</text>
+    <text class="hero-title">快速查找项目或模板</text>
+  </view>
+
+  <view class="section stack">
+    <view class="field">
+      <view class="row" style="gap: 12rpx;">
+        <input class="input" style="flex: 1;" value="{{query}}" bindinput="onQueryInput" placeholder="输入项目名或模板名..." />
+        <button class="primary-btn" style="padding: 16rpx 28rpx;" bindtap="onSearch" loading="{{searching}}" disabled="{{!query.trim()}}">搜索</button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{searched && !searching}}" class="stack">
+    <!-- Project results -->
+    <view wx:if="{{results && results.projects.length}}" class="section stack">
+      <view class="split">
+        <text class="section-title">项目</text>
+        <button size="mini" class="ghost-btn" bindtap="goProjects">查看全部</button>
+      </view>
+      <view class="card-list">
+        <view wx:for="{{results.projects}}" wx:key="id" class="list-item" bindtap="openProject" data-id="{{item.id}}">
+          <view class="split">
+            <view class="stack" style="gap: 6rpx;">
+              <text class="item-title">{{item.name}}</text>
+              <text class="item-meta">{{item.type === 'text' ? '文字' : '图片'}} · {{item.status}}</text>
+            </view>
+            <text class="status-pill">{{item.type === 'text' ? '文本' : '图片'}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- Template results -->
+    <view wx:if="{{results && results.templates.length}}" class="section stack">
+      <text class="section-title">模板</text>
+      <view class="card-list">
+        <view wx:for="{{results.templates}}" wx:key="id" class="list-item" bindtap="openTemplate">
+          <view class="stack" style="gap: 6rpx;">
+            <text class="item-title">{{item.name}}</text>
+            <text class="item-meta">{{item.description}}</text>
+          </view>
+          <text class="status-pill">{{item.category}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{searched && (!results || (!results.projects.length && !results.templates.length))}}" class="empty">
+      未找到与 "{{query}}" 相关的结果
+    </view>
+  </view>
+</view>

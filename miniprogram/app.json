@@ -16,6 +16,7 @@
     "pages/profiles/machine/index",
     "pages/profiles/index",
     "pages/admin/index",
+    "pages/search/index",
     "pages/templates/index"
   ],
   "window": {

@@ -203,13 +203,21 @@ const projectDetailText = {
     fontId: "fnt_001",
     fontSize: 100,
     lineGap: 0,
-    processorPresetId: null
+    charSpacing: 0,
+    strokeWidth: 0,
+    processorPresetId: null,
+    cropBounds: null,
+    offsetXMm: 0,
+    offsetYMm: 0,
+    scaleFactor: 1,
+    contentRotation: 0
   },
   layout: {
     widthMm: 80,
     heightMm: 50,
     rotationDeg: 0,
-    align: "center"
+    align: "center",
+    blockWidth: 0
   },
   processParams: {
     speed: 1000,
@@ -344,6 +352,36 @@ const imageProcessorsList = {
       name: "中心线",
       type: "centerline",
       defaultParams: { threshold: 100, noiseReduction: 2 }
+    },
+    {
+      id: "ip_004",
+      name: "精细模式",
+      type: "fine",
+      defaultParams: { threshold: 160, noiseReduction: 0, dpi: 500 }
+    },
+    {
+      id: "ip_005",
+      name: "高对比度",
+      type: "high-contrast",
+      defaultParams: { threshold: 60, noiseReduction: 3, contrast: 1.5 }
+    },
+    {
+      id: "ip_006",
+      name: "素描效果",
+      type: "sketch",
+      defaultParams: { threshold: 100, noiseReduction: 1, lineWidth: 1 }
+    },
+    {
+      id: "ip_007",
+      name: "浮雕效果",
+      type: "emboss",
+      defaultParams: { threshold: 120, noiseReduction: 0, depth: 3 }
+    },
+    {
+      id: "ip_008",
+      name: "二值化",
+      type: "binary",
+      defaultParams: { threshold: 90, noiseReduction: 2, invert: false }
     }
   ]
 };
@@ -457,6 +495,11 @@ async function completeProfile(payload) {
   };
 }
 
+async function dispatchJob(jobId) {
+  await wait(80);
+  return { mode: "simulation", jobId };
+}
+
 async function getMe() {
   await wait(120);
   return clone(state.currentUser || authMe);
@@ -532,6 +575,8 @@ async function createProject(sourceType, selectedDeviceId) {
     fontId: "fnt_001",
     fontSize: 100,
     lineGap: 0,
+    charSpacing: 0,
+    strokeWidth: 0,
     processorPresetId: sourceType === "image" ? "ip_001" : null
   };
   project.selectedDeviceId = selectedDeviceId || state.selectedDeviceId;
@@ -691,6 +736,7 @@ async function createJob(payload) {
     generationId: payload.generationId,
     deviceId: payload.deviceId,
     status: "queued",
+    priority: payload.priority || "normal",
     progress: {
       percent: 0,
       currentStep: "queued"
@@ -718,6 +764,7 @@ async function listJobs(status) {
       projectId: item.projectId,
       deviceId: item.deviceId,
       status: item.status,
+      priority: item.priority || "normal",
       progress: item.progress,
       updatedAt: item.timeline[item.timeline.length - 1].at
     })),
@@ -777,7 +824,7 @@ async function createTemplate(payload) {
     sourceType: payload.sourceType || "text",
     category: payload.category || "自定义",
     isSystem: false,
-    content: payload.content || { text: "", imageAssetId: null, fontId: "fnt_001", fontSize: 100, lineGap: 0, processorPresetId: null },
+    content: payload.content || { text: "", imageAssetId: null, fontId: "fnt_001", fontSize: 100, lineGap: 0, charSpacing: 0, strokeWidth: 0, processorPresetId: null, cropBounds: null, offsetXMm: 0, offsetYMm: 0, scaleFactor: 1, contentRotation: 0 },
     layout: payload.layout || { widthMm: 80, heightMm: 50, rotationDeg: 0, align: "center" },
     processParams: payload.processParams || { speed: 1000, power: 65, passes: 1, lineSpacing: 1.0 },
     previewImageUrl: ""
@@ -804,6 +851,88 @@ async function deleteTemplate(templateId) {
   if (index < 0) return null;
   state.userTemplates.splice(index, 1);
   return { deleted: true };
+}
+
+async function preflightCheck(projectId) {
+  await wait(80);
+  const project = state.projects.find((item) => item.id === projectId);
+  if (!project) {
+    return { valid: false, errors: [{ field: "project", message: "项目不存在" }], warnings: [] };
+  }
+  const errors = [];
+  const warnings = [];
+  if (project.sourceType === "text" && !project.content.text) {
+    errors.push({ field: "content.text", message: "文字项目内容不能为空" });
+  }
+  if (project.sourceType === "image" && !project.content.imageAssetId) {
+    errors.push({ field: "content.imageAssetId", message: "图片项目未选择素材" });
+  }
+  if (!project.selectedDeviceId) {
+    errors.push({ field: "selectedDeviceId", message: "未选择设备" });
+  }
+  if (project.processParams.power < 1 || project.processParams.power > 100) {
+    errors.push({ field: "processParams.power", message: "功率应在 1-100 之间" });
+  }
+  return { valid: errors.length === 0, errors, warnings };
+}
+
+async function exportProject(projectId) {
+  await wait(80);
+  const project = state.projects.find((item) => item.id === projectId);
+  if (!project) return null;
+  const p = clone(project);
+  return {
+    formatVersion: "1.0",
+    exportedAt: "2026-05-01T12:00:00Z",
+    project: {
+      name: p.name,
+      sourceType: p.sourceType,
+      selectedDeviceId: p.selectedDeviceId,
+      machineProfileId: p.machineProfileId,
+      materialProfileId: p.materialProfileId,
+      content: p.content,
+      layout: p.layout,
+      processParams: p.processParams
+    }
+  };
+}
+
+async function importProject(data) {
+  await wait(120);
+  const id = nextId("prj", "project");
+  const p = data && data.project;
+  const project = clone(projectDetailText);
+  project.id = id;
+  project.name = (p && p.name) || "Imported Project";
+  project.sourceType = (p && p.sourceType) || "text";
+  project.content = (p && p.content) || clone(projectDetailText.content);
+  project.layout = (p && p.layout) || clone(projectDetailText.layout);
+  project.processParams = (p && p.processParams) || clone(projectDetailText.processParams);
+  project.selectedDeviceId = (p && p.selectedDeviceId) || "";
+  project.machineProfileId = (p && p.machineProfileId) || "";
+  project.materialProfileId = (p && p.materialProfileId) || "";
+  project.latestPreviewId = null;
+  project.latestGenerationId = null;
+  project.updatedAt = "2026-05-01T12:00:00Z";
+  state.projects.unshift(project);
+  return { id, status: "draft" };
+}
+
+async function search(q) {
+  await wait(80);
+  const results = { projects: [], templates: [] };
+  const lower = q.toLowerCase();
+  state.projects.forEach((p) => {
+    if (p.name.toLowerCase().includes(lower) || p.id.includes(lower)) {
+      results.projects.push({ id: p.id, name: p.name, type: p.sourceType, status: p.status });
+    }
+  });
+  systemTemplates.forEach((t) => {
+    if (t.name.includes(q) || (t.description || "").includes(q)) {
+      results.templates.push({ id: t.id, name: t.name, description: t.description, sourceType: t.sourceType, category: t.category });
+    }
+  });
+  return results;
 }
 
 async function applyTemplate(templateId) {
@@ -942,6 +1071,11 @@ module.exports = {
   register,
   completeProfile,
   getMe,
+  search,
+  preflightCheck,
+  exportProject,
+  importProject,
+  dispatchJob,
   listDevices,
   bindDevice,
   createProject,

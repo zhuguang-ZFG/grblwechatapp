@@ -29,6 +29,17 @@ Before using this checklist, assume the following baseline:
   - task failure classification
   - project duplicate/archive/restore/delete
   - archived project read-only gate in project list
+  - template CRUD and apply
+  - machine/material profile management
+  - admin dashboard stats
+  - canvas editor live preview (text + image + crop)
+  - P2 editing fields (char spacing, stroke, block width)
+  - preview comparison (version diff)
+  - search across projects and templates
+  - project export/import
+  - image upload pipeline
+  - image processor presets
+  - device gateway dispatch (simulation mode)
 
 ## 3. Pre-Flight Setup
 
@@ -278,6 +289,208 @@ Expected:
 - timeline includes state transitions
 - final state reaches `completed` in the fake-worker happy path
 
+## 4.10 Template management flow
+
+Goal:
+
+- prove template CRUD and apply-from-template work end to end
+
+Steps:
+
+1. open editor for a project
+2. tap "保存为模板"
+3. enter name, description, category
+4. confirm save
+5. navigate to templates page
+6. verify new template appears in list with correct category
+7. tap edit on a user-created template, change name, confirm
+8. delete the template
+9. tap apply on a system template
+
+Expected:
+
+- save template creates a new entry in the template list
+- edit updates the template name and description
+- delete removes it with confirmation
+- apply creates a new project from the template and routes to editor
+
+## 4.11 Profile management (machine/material)
+
+Goal:
+
+- verify machine and material profile management pages
+
+Steps:
+
+1. open profiles page
+2. toggle between machine profiles and material profiles tabs
+3. view system profiles
+4. create a new machine profile with name and parameters
+5. create a new material profile
+6. delete a user-created profile
+
+Expected:
+
+- system profiles render read-only (no delete)
+- user-created profiles appear in the list
+- delete with confirmation removes user profiles
+
+## 4.12 Admin dashboard view
+
+Goal:
+
+- verify admin stats page renders aggregated data
+
+Steps:
+
+1. open workspace
+2. tap "管理面板" or navigate to admin page
+3. inspect stats cards
+4. inspect job status breakdown
+
+Expected:
+
+- project/device/job counts render as numeric cards
+- job status grid shows counts per status
+- device list with online status renders
+- recent jobs with status filter buttons work
+
+## 4.13 Canvas live preview in editor
+
+Goal:
+
+- verify the editor canvas preview renders and updates live
+
+Steps:
+
+1. open a text project in editor
+2. verify canvas shows work area with grid and dimension labels
+3. type text in the content field
+4. verify canvas updates with rendered text (debounced)
+5. change font size, line gap, alignment
+6. verify canvas reflects changes
+7. toggle preview collapse/expand
+
+Expected:
+
+- canvas renders work area outline with mm dimension labels
+- text content appears on canvas
+- font size / alignment changes update the preview
+- preview toggle hides/shows canvas
+
+## 4.14 P2 editing fields
+
+Goal:
+
+- verify extended editing fields render and persist
+
+Steps:
+
+1. open text project in editor
+2. locate 字距(px) / 描边(px) / 文本块宽(mm) fields
+3. adjust each field
+4. verify canvas updates accordingly
+
+Expected:
+
+- char spacing spreads characters on canvas
+- stroke width adds outline to text
+- block width wraps text at the specified width
+
+## 4.15 Image upload and crop
+
+Goal:
+
+- verify image upload and crop bounds editing
+
+Steps:
+
+1. create or open an image project
+2. tap "选择图片" or "使用示例图片"
+3. verify canvas switches to image mode
+4. enter crop bounds (X, Y, width, height)
+5. verify crop overlay renders on canvas with dim area and green dashed border
+6. tap "清除裁剪"
+
+Expected:
+
+- image mode shows image placeholder on canvas
+- crop overlay renders outside-crop dimming
+- clear crop removes overlay
+
+## 4.16 Preview comparison
+
+Goal:
+
+- verify preview page shows version diff when multiple previews exist
+
+Steps:
+
+1. generate a preview for a project
+2. modify project and generate another preview
+3. open the second preview
+
+Expected:
+
+- preview page shows "版本对比" section
+- metric deltas display with red (increase) / green (decrease) indicators
+
+## 4.17 Search flow
+
+Goal:
+
+- verify search across projects and templates
+
+Steps:
+
+1. open workspace
+2. tap search button
+3. enter a project name keyword
+4. inspect results
+5. tap a project result
+
+Expected:
+
+- search returns matching projects and templates
+- tapping a project result navigates to editor
+- empty query returns empty results
+
+## 4.18 Project export/import flow
+
+Goal:
+
+- verify project export from editor and import from project list
+
+Steps:
+
+1. open a project in editor
+2. tap "导出项目"
+3. verify toast confirmation (data saved to clipboard or file)
+4. go to project list page
+5. tap "导入" button
+
+Expected:
+
+- export produces project JSON and shows success toast
+- data is copied to clipboard for external use
+
+## 4.19 Task dispatch flow
+
+Goal:
+
+- verify job dispatch from task detail page
+
+Steps:
+
+1. open a task detail for a job in "queued" state
+2. if dispatch button is visible, tap it
+3. verify status transitions through dispatching/running
+
+Expected:
+
+- dispatch calls backend and transitions job state
+- UI reflects current dispatch mode (simulation/real)
+
 ## 4.9 Task failure and retry flow
 
 Goal:
@@ -349,6 +562,32 @@ Expected:
 
 - user summary loads from backend
 
+### Templates
+
+- template list loads system + user templates
+- create template overlay saves correctly
+- edit and delete user templates work
+- apply template creates a new project
+
+### Profiles (machine/material)
+
+- tab toggle between machine and material profiles
+- system profiles display with read-only appearance
+- create and delete user profiles work
+
+### Admin
+
+- stats cards render aggregated counts
+- job status breakdown grid renders
+- device list with online status renders
+- recent jobs filter buttons work
+
+### Search
+
+- search input and trigger work
+- project results navigate to editor
+- template results display correctly
+
 ## 6. Common Failure Clues
 
 If DevTools verification breaks, inspect these first:
@@ -366,12 +605,19 @@ For the fastest real-world smoke test, use this order:
 1. backend startup
 2. login/register
 3. device selection/bind
-4. create project
-5. preview
-6. submit task
-7. task detail completion
-8. task failure path
-9. project archive/restore/delete
+4. create project (text)
+5. editor canvas preview + P2 fields
+6. preview
+7. submit task
+8. task detail completion
+9. task failure path
+10. project archive/restore/delete
+11. template save and apply
+12. profile management
+13. admin dashboard
+14. search
+15. project export/import
+16. image project with crop
 
 ## 8. Evidence Capture Suggestion
 

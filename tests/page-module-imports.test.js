@@ -12,7 +12,8 @@ const pageFiles = [
   "../miniprogram/pages/profiles/material/index.js",
   "../miniprogram/pages/profiles/machine/index.js",
   "../miniprogram/pages/profiles/index.js",
-  "../miniprogram/pages/admin/index.js"
+  "../miniprogram/pages/admin/index.js",
+  "../miniprogram/pages/search/index.js"
 ];
 
 const stubs = [
@@ -66,7 +67,12 @@ function installStubs() {
     deleteMachineProfile: async () => ({ deleted: true }),
     createMaterialProfile: async () => ({ id: "mat_new" }),
     deleteMaterialProfile: async () => ({ deleted: true }),
-    getDashboardStats: async () => ({ projectCount: 0, jobCounts: {}, deviceCount: 0, totalJobs: 0 })
+    getDashboardStats: async () => ({ projectCount: 0, jobCounts: {}, deviceCount: 0, totalJobs: 0 }),
+    dispatchJob: async () => ({ mode: "simulation", jobId: "job_1" }),
+    search: async () => ({ projects: [], templates: [] }),
+    preflightCheck: async () => ({ valid: true, errors: [], warnings: [] }),
+    exportProject: async () => ({ formatVersion: "1.0", exportedAt: new Date().toISOString(), project: {} }),
+    importProject: async () => ({ id: "prj_imported", status: "draft" })
   });
 
   stubModule("../miniprogram/utils/page-auth.js", {

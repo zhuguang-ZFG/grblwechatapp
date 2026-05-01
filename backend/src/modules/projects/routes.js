@@ -57,6 +57,23 @@ function registerProjectsRoutes(app) {
     return result;
   });
 
+  app.get("/api/v1/projects/:id/preflight", { preHandler: [app.authenticate] }, async (request, reply) => {
+    const result = app.projectsService.preflightCheck(request.currentUser.id, request.params.id);
+    return result;
+  });
+
+  app.get("/api/v1/projects/:id/export", { preHandler: [app.authenticate] }, async (request, reply) => {
+    const result = app.projectsService.exportProject(request.currentUser.id, request.params.id);
+    if (!result) {
+      return sendError(reply, 404, "project_not_found", "Project was not found");
+    }
+    return result;
+  });
+
+  app.post("/api/v1/projects/import", { preHandler: [app.authenticate] }, async (request) => {
+    return app.projectsService.importProject(request.currentUser.id, request.body);
+  });
+
   app.post("/api/v1/projects/:id/assets", { preHandler: [app.authenticate] }, async (request, reply) => {
     const result = app.projectsService.createAsset(request.currentUser.id, request.params.id, request.body);
     if (!result) {

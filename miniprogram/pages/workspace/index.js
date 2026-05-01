@@ -61,5 +61,9 @@ Page({
 
   goAdmin() {
     wx.navigateTo({ url: "/pages/admin/index" });
+  },
+
+  goSearch() {
+    wx.navigateTo({ url: "/pages/search/index" });
   }
 });

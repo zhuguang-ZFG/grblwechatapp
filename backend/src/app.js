@@ -22,6 +22,8 @@ const { createProfilesService } = require("./modules/profiles/service");
 const { registerProfilesRoutes } = require("./modules/profiles/routes");
 const { createTemplatesService } = require("./modules/templates/service");
 const { registerTemplatesRoutes } = require("./modules/templates/routes");
+const { createGatewayService } = require("./modules/gateway/service");
+const { registerGatewayRoutes } = require("./modules/gateway/routes");
 
 const MIME_TYPES = {
   ".png": "image/png",
@@ -53,6 +55,7 @@ function buildApp(options = {}) {
   app.decorate("workerTasks", createWorkerTasks(app));
   app.decorate("profilesService", createProfilesService(app));
   app.decorate("templatesService", createTemplatesService(app));
+  app.decorate("gatewayService", createGatewayService(app));
 
   app.get("/health", async () => ({ ok: true }));
 
@@ -80,6 +83,7 @@ function buildApp(options = {}) {
   registerJobRoutes(app);
   registerProfilesRoutes(app);
   registerTemplatesRoutes(app);
+  registerGatewayRoutes(app);
 
   // Dashboard stats
   app.get("/api/v1/dashboard/stats", { preHandler: [app.authenticate] }, async (request) => {
@@ -103,8 +107,29 @@ function buildApp(options = {}) {
     };
   });
 
+  // Global search
+  app.get("/api/v1/search", { preHandler: [app.authenticate] }, async (request) => {
+    const userId = request.currentUser.id;
+    const q = (request.query.q || "").trim();
+    if (!q) return { projects: [], templates: [] };
+    const like = `%${q}%`;
+    const db = app.db;
+    const projects = db.prepare(`
+      SELECT id, name, source_type, status FROM projects
+      WHERE owner_user_id = ? AND (name LIKE ? OR id LIKE ?)
+      LIMIT 10
+    `).all(userId, like, like).map((r) => ({ id: r.id, name: r.name, type: r.source_type, status: r.status }));
+    const templates = db.prepare(`
+      SELECT id, name, description, source_type, category FROM templates
+      WHERE name LIKE ? OR description LIKE ?
+      LIMIT 10
+    `).all(like, like).map((r) => ({ id: r.id, name: r.name, description: r.description, sourceType: r.source_type, category: r.category }));
+    return { projects, templates };
+  });
+
   app.addHook("onClose", async () => {
     app.workerRuntime.close();
+    app.gatewayService.close();
     app.db.close();
   });
 

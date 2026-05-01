@@ -13,7 +13,11 @@ Page({
     },
     submitting: false,
     polling: false,
-    generationId: ""
+    generationId: "",
+    priority: "normal",
+    priorityIndex: 1,
+    priorityOptions: ["高", "普通", "低"],
+    priorityValues: ["high", "normal", "low"]
   },
 
   async onLoad(options) {
@@ -92,6 +96,11 @@ Page({
     }
   },
 
+  onPriorityChange(event) {
+    const index = Number(event.detail.value);
+    this.setData({ priorityIndex: index, priority: this.data.priorityValues[index] });
+  },
+
   async submitJob() {
     this.setData({ submitting: true });
     try {
@@ -112,7 +121,8 @@ Page({
       const job = await api.createJob({
         projectId: this.data.projectId,
         generationId,
-        deviceId: project.selectedDeviceId
+        deviceId: project.selectedDeviceId,
+        priority: this.data.priority
       });
       wx.navigateTo({ url: `/pages/tasks/detail/index?id=${job.jobId}` });
     } finally {

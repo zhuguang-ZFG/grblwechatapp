@@ -86,11 +86,15 @@ Already implemented in the current repo:
 - complete-profile page
 - workspace page
 - projects page
-- editor page
-- preview page
+- editor page (with canvas live preview)
+- preview page (with version comparison)
 - tasks list/detail
 - devices list/bind
 - profile page
+- templates page (CRUD + apply)
+- profiles page (machine/material tabs, create, delete)
+- admin page (dashboard stats)
+- search page
 
 Important current frontend facts:
 
@@ -111,7 +115,18 @@ Important current frontend facts:
 - project list cards now include resolved device status alongside device name for quicker scan reading
 - device list now highlights the currently selected device and formats `lastSeenAt` into a readable timestamp label
 - task list now supports failure-category filtering and exposes failure-category summary counts for failed jobs
-- real adapter now includes project lifecycle actions for duplicate, archive, and delete
+- real adapter now includes project lifecycle actions for duplicate, archive, delete, export, and import
+- template management UI supports create, edit, delete, and apply
+- profile management UI supports machine/material tabs, create, and delete
+- admin page fetches dashboard stats and renders job status breakdown
+- search page queries projects and templates via `/api/v1/search`
+- editor canvas preview renders live text/image with debounced updates
+- editor supports P2 fields: char spacing, stroke width, block width
+- editor supports image crop bounds with overlay rendering
+- preview comparison shows delta between consecutive previews
+- image upload pipeline reads file as base64 and sends to backend
+- export creates project JSON and copies to clipboard
+- import reads .json file via wx.chooseMessageFile
 
 ### 3.2 Backend
 
@@ -123,20 +138,25 @@ Implemented backend modules:
 
 - `auth`
 - `devices`
-- `projects`
-- `previews`
+- `projects` (includes export/import)
+- `previews` (includes comparison/delta)
 - `generations`
-- `jobs`
+- `jobs` (includes dispatch, retry/cancel guards)
+- `profiles` (machine + material CRUD)
+- `templates` (CRUD + apply)
+- `gateway` (in-memory sessions, job dispatch, heartbeat, progress)
 - `workers`
 
 Current backend runtime shape:
 
 - Fastify app
 - SQLite DB bootstrap
-- seeded devices
-- local artifact store
+- seeded devices, fonts, image processors, machine/material profiles, templates
+- local artifact store with lifecycle cleanup (mtime-based eviction)
 - fake async workers for preview/generation/job progression
-- worker runtime now clears pending timers on app shutdown so tests and app close do not leave async tails behind
+- gateway service with in-memory session map, stale detection (30s interval), simulation fallback
+- worker runtime clears pending timers on app shutdown
+- gateway service clears interval on app close
 
 ### 3.3 Job state and failure baseline
 
@@ -289,11 +309,11 @@ If a future session needs a quick orientation point, treat `d304be9` as the late
 These are **not** yet solved and should remain explicit:
 
 - page-by-page real-device UI walkthrough inside actual WeChat devtools has not been fully captured in docs
-- image upload pipeline is still stubbed
+- image upload pipeline is still stubbed in mock mode (real adapter uses wx.getFileSystemManager base64 read)
 - preview output is placeholder text/file output, not final visual rendering fidelity
-- generation output is placeholder GCode/path output
-- device gateway is not implemented as a separate runtime
-- job retry/cancel behavior exists at API level, but full page-level interactive polish still needs more real-environment verification
+- generation output is placeholder GCode/path output  
+- device gateway is in-memory only with simulation fallback — no real device runtime
+- import/export uses clipboard and local file picker — no cloud sync yet
 
 ## 7. How To Rehydrate Context In A New Session
 
@@ -318,6 +338,9 @@ Then inspect these code anchors:
 - `backend/src/modules/previews/service.js`
 - `backend/src/modules/generations/service.js`
 - `backend/src/modules/jobs/service.js`
+- `backend/src/modules/profiles/service.js`
+- `backend/src/modules/templates/service.js`
+- `backend/src/modules/gateway/service.js`
 
 ## 8. Single-Sentence Memory Anchor
 

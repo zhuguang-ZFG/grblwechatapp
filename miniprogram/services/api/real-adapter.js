@@ -94,6 +94,17 @@ module.exports = {
     return request({ url: "/dashboard/stats" });
   },
 
+  search(q) {
+    return request({ url: `/search?q=${encodeURIComponent(q)}` });
+  },
+
+  dispatchJob(jobId) {
+    return request({
+      url: `/jobs/${jobId}/dispatch`,
+      method: "POST"
+    });
+  },
+
   bindDevice(bindingCode) {
     return request({
       url: "/devices/bind",
@@ -168,6 +179,22 @@ module.exports = {
     return request({
       url: `/projects/${projectId}`,
       method: "DELETE"
+    });
+  },
+
+  preflightCheck(projectId) {
+    return request({ url: `/projects/${projectId}/preflight` });
+  },
+
+  exportProject(projectId) {
+    return request({ url: `/projects/${projectId}/export` });
+  },
+
+  importProject(data) {
+    return request({
+      url: "/projects/import",
+      method: "POST",
+      data
     });
   },
 

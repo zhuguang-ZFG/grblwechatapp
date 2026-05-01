@@ -5,7 +5,7 @@
       <button size="mini" class="ghost-btn" bindtap="togglePreview">{{showPreview ? '收起预览' : '展开预览'}}</button>
     </view>
     <view wx:if="{{showPreview}}" class="canvas-wrapper">
-      <canvas type="2d" id="editorPreviewCanvas" class="preview-canvas"></canvas>
+      <canvas type="2d" id="editorPreviewCanvas" class="preview-canvas" bindtouchstart="onCanvasTouchStart" catchtouchmove="onCanvasTouchMove" bindtouchend="onCanvasTouchEnd"></canvas>
       <text class="canvas-dim-label">{{project.layout.widthMm}} × {{project.layout.heightMm}} mm</text>
     </view>
   </view>
@@ -56,11 +56,53 @@
       </view>
     </view>
 
+    <view wx:if="{{project.sourceType === 'text'}}" class="row">
+      <view class="field">
+        <text class="label">字距(px)</text>
+        <input class="input" type="digit" value="{{project.content.charSpacing}}" data-field="charSpacing" bindinput="onContentInput" />
+      </view>
+      <view class="field">
+        <text class="label">描边(px)</text>
+        <input class="input" type="digit" value="{{project.content.strokeWidth}}" data-field="strokeWidth" bindinput="onContentInput" />
+      </view>
+      <view class="field">
+        <text class="label">文本块宽(mm)</text>
+        <input class="input" type="digit" value="{{project.layout.blockWidth}}" data-field="blockWidth" bindinput="onLayoutInput" />
+      </view>
+    </view>
+
     <view wx:else class="field">
       <text class="label">图片素材</text>
       <view class="input">{{project.content.imageAssetId || '未选择素材'}}</view>
       <button class="ghost-btn" bindtap="chooseImage">选择图片</button>
       <button class="ghost-btn" bindtap="mockUploadImage">使用示例图片</button>
+    </view>
+
+    <view wx:if="{{project.sourceType === 'image' && project.content.imageAssetId}}" class="section stack" style="margin-top: 16rpx;">
+      <view class="split">
+        <text class="section-title">裁剪区域 (mm)</text>
+        <button class="ghost-btn" style="font-size: 24rpx; padding: 8rpx 12rpx;" bindtap="clearCrop">清除裁剪</button>
+      </view>
+      <view class="row">
+        <view class="field">
+          <text class="label">X</text>
+          <input class="input" type="digit" value="{{project.content.cropBounds.x}}" data-field="x" bindinput="onCropInput" placeholder="0" />
+        </view>
+        <view class="field">
+          <text class="label">Y</text>
+          <input class="input" type="digit" value="{{project.content.cropBounds.y}}" data-field="y" bindinput="onCropInput" placeholder="0" />
+        </view>
+      </view>
+      <view class="row">
+        <view class="field">
+          <text class="label">宽度</text>
+          <input class="input" type="digit" value="{{project.content.cropBounds.width}}" data-field="width" bindinput="onCropInput" placeholder="全部" />
+        </view>
+        <view class="field">
+          <text class="label">高度</text>
+          <input class="input" type="digit" value="{{project.content.cropBounds.height}}" data-field="height" bindinput="onCropInput" placeholder="全部" />
+        </view>
+      </view>
     </view>
 
     <view wx:if="{{project.sourceType === 'image'}}" class="field">
@@ -143,6 +185,7 @@
 
   <view class="fixed-cta stack">
     <button class="ghost-btn" bindtap="showSaveTemplate">保存为模板</button>
+    <button class="ghost-btn" bindtap="exportProject">导出项目</button>
     <button class="ghost-btn" bindtap="saveProject">保存</button>
     <button class="primary-btn" loading="{{loading}}" bindtap="generatePreview">生成预览</button>
   </view>

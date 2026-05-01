@@ -67,6 +67,12 @@
       <button class="secondary-btn" bindtap="refreshPreview">刷新预览</button>
       <button class="secondary-btn" bindtap="regeneratePreview">重新生成</button>
     </view>
+    <view class="field">
+      <text class="label">优先级</text>
+      <picker mode="selector" range="{{priorityOptions}}" value="{{priorityIndex}}" bindchange="onPriorityChange">
+        <view class="input">{{priorityOptions[priorityIndex]}}</view>
+      </picker>
+    </view>
     <button class="primary-btn" loading="{{submitting}}" disabled="{{preview.status !== 'ready'}}" bindtap="submitJob">提交任务</button>
   </view>
 </view>

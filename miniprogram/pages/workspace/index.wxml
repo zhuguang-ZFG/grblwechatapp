@@ -3,6 +3,7 @@
     <text class="eyebrow">今日工作台</text>
     <text class="hero-title">从这里发起项目、盯预览、再把任务推到设备</text>
     <text class="hero-copy">P0 先把闭环做稳：文本 / 图片项目、服务端预览、任务下发与状态回看。</text>
+    <button class="ghost-btn" style="margin-top: 12rpx; align-self: flex-start;" bindtap="goSearch">🔍 搜索项目或模板</button>
   </view>
 
   <view class="stats-grid">

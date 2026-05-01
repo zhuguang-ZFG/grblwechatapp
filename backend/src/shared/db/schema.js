@@ -109,6 +109,7 @@ function applySchema(db) {
       generation_id TEXT NOT NULL,
       device_id TEXT NOT NULL,
       status TEXT NOT NULL,
+      priority TEXT DEFAULT 'normal',
       progress_json TEXT NOT NULL,
       failure_json TEXT DEFAULT '',
       created_at TEXT NOT NULL,

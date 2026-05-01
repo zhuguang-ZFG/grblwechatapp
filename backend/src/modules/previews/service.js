@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { PREVIEW } = require("../../shared/constants/statuses");
 
 function now() {
   return new Date().toISOString();
@@ -16,8 +17,8 @@ function createPreviewsService(app) {
     const previewId = `pre_${crypto.randomUUID().slice(0, 8)}`;
     db.prepare(`
       INSERT INTO previews (id, project_id, status, preview_image_url, preview_svg_url, metrics_json, warnings_json, created_at)
-      VALUES (?, ?, 'processing', '', '', '{}', '[]', ?)
-    `).run(previewId, projectId, now());
+      VALUES (?, ?, ?, '', '', '{}', '[]', ?)
+    `).run(previewId, projectId, PREVIEW.PROCESSING, now());
 
     db.prepare("UPDATE projects SET latest_preview_id = ?, updated_at = ? WHERE id = ?")
       .run(previewId, now(), projectId);
@@ -28,7 +29,7 @@ function createPreviewsService(app) {
 
     return {
       previewId,
-      status: "processing"
+      status: PREVIEW.PROCESSING
     };
   }
 
@@ -49,12 +50,12 @@ function createPreviewsService(app) {
     };
 
     // Compute comparison with previous preview for the same project
-    if (row.project_id && row.status === "ready") {
+    if (row.project_id && row.status === PREVIEW.READY) {
       const prev = db.prepare(`
         SELECT id, metrics_json FROM previews
-        WHERE project_id = ? AND id != ? AND status = 'ready'
+        WHERE project_id = ? AND id != ? AND status = ?
         ORDER BY created_at DESC LIMIT 1
-      `).get(row.project_id, row.id);
+      `).get(row.project_id, row.id, PREVIEW.READY);
 
       if (prev) {
         const prevMetrics = JSON.parse(prev.metrics_json);
@@ -85,9 +86,23 @@ function createPreviewsService(app) {
     return result;
   }
 
+  // Stale processing detection: fail if processing > 5 minutes
+  const processingTimer = setInterval(() => {
+    const deadline = new Date(Date.now() - 300000).toISOString();
+    db.prepare(`
+      UPDATE previews SET status = ?, warnings_json = ?
+      WHERE status = ? AND created_at < ?
+    `).run(PREVIEW.FAILED, JSON.stringify([{ field: "timeout", message: "处理超时" }]), PREVIEW.PROCESSING, deadline);
+  }, 60000);
+
+  function close() {
+    clearInterval(processingTimer);
+  }
+
   return {
     createPreview,
-    getPreview
+    getPreview,
+    close
   };
 }
 

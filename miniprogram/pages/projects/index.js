@@ -223,5 +223,28 @@ Page({
     } finally {
       this.setData({ actionLoading: false, actionProjectId: "" });
     }
+  },
+
+  async importProject() {
+    if (typeof wx === "undefined" || typeof wx.chooseMessageFile !== "function") {
+      showToast("导入仅在微信环境可用");
+      return;
+    }
+    try {
+      const res = wx.chooseMessageFile({ count: 1, type: "file" });
+      const file = res.tempFiles[0];
+      if (!file || !file.name.endsWith(".json")) {
+        showToast("请选择 .json 文件");
+        return;
+      }
+      const fs = wx.getFileSystemManager();
+      const content = fs.readFileSync(file.path, "utf8");
+      const data = JSON.parse(content);
+      const result = await api.importProject(data);
+      showToast("已导入项目");
+      wx.navigateTo({ url: `/pages/workspace/editor/index?id=${result.id}` });
+    } catch (error) {
+      showToast("导入失败，请检查文件格式");
+    }
   }
 });

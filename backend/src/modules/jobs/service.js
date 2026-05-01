@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { JOB, assertTransition } = require("../../shared/constants/statuses");
 
 function now() {
   return new Date().toISOString();
@@ -31,21 +32,20 @@ function createJobsService(app) {
 
     const jobId = `job_${crypto.randomUUID().slice(0, 8)}`;
     const createdAt = now();
+    const priority = ["high", "normal", "low"].includes(payload.priority) ? payload.priority : "normal";
     db.prepare(`
-      INSERT INTO jobs (id, project_id, generation_id, device_id, status, progress_json, failure_json, created_at, updated_at)
-      VALUES (?, ?, ?, ?, 'queued', ?, '', ?, ?)
-    `).run(jobId, payload.projectId, payload.generationId, payload.deviceId, JSON.stringify({ percent: 0, currentStep: "queued" }), createdAt, createdAt);
+      INSERT INTO jobs (id, project_id, generation_id, device_id, status, priority, progress_json, failure_json, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, '', ?, ?)
+    `).run(jobId, payload.projectId, payload.generationId, payload.deviceId, JOB.QUEUED, priority, JSON.stringify({ percent: 0, currentStep: JOB.QUEUED }), createdAt, createdAt);
 
     db.prepare("INSERT INTO job_events (id, job_id, status, at) VALUES (?, ?, ?, ?)")
-      .run(`${jobId}_queued`, jobId, "queued", createdAt);
+      .run(`${jobId}_${JOB.QUEUED}`, jobId, JOB.QUEUED, createdAt);
 
-    app.workerRuntime.enqueue(async () => {
-      await app.workerTasks.runJob(jobId);
-    });
+    app.gatewayService.dispatchJob(jobId);
 
     return {
       jobId,
-      status: "queued"
+      status: JOB.QUEUED
     };
   }
 
@@ -71,7 +71,7 @@ function createJobsService(app) {
       params.push(`%"category":"${failureCategory}"%`);
     }
 
-    sql += " ORDER BY jobs.updated_at DESC";
+    sql += " ORDER BY CASE jobs.priority WHEN 'high' THEN 0 WHEN 'normal' THEN 1 WHEN 'low' THEN 2 ELSE 1 END, jobs.updated_at DESC";
     const rows = db.prepare(sql).all(...params);
 
     const items = rows.map((row) => ({
@@ -79,13 +79,14 @@ function createJobsService(app) {
         projectId: row.project_id,
         deviceId: row.device_id,
         status: row.status,
+        priority: row.priority || "normal",
         progress: JSON.parse(row.progress_json),
         failure: parseFailure(row.failure_json),
         updatedAt: row.updated_at
       }));
 
     const failedByCategory = items.reduce((acc, item) => {
-      if (item.status !== "failed" || !item.failure || !item.failure.category) {
+      if (item.status !== JOB.FAILED || !item.failure || !item.failure.category) {
         return acc;
       }
       const key = item.failure.category;
@@ -99,7 +100,7 @@ function createJobsService(app) {
       pageSize: rows.length,
       total: rows.length,
       summary: {
-        totalFailed: items.filter((item) => item.status === "failed").length,
+        totalFailed: items.filter((item) => item.status === JOB.FAILED).length,
         failedByCategory
       }
     };
@@ -118,10 +119,21 @@ function createJobsService(app) {
       generationId: row.generation_id,
       deviceId: row.device_id,
       status: row.status,
+      priority: row.priority || "normal",
       progress: JSON.parse(row.progress_json),
       failure: parseFailure(row.failure_json),
       timeline: events
     };
+  }
+
+  function updateJobStatus(jobId, newStatus, progress, userIdForEvent) {
+    const row = db.prepare("SELECT * FROM jobs WHERE id = ?").get(jobId);
+    if (!row) return;
+    assertTransition(JOB, row.status, newStatus, "job");
+    db.prepare("UPDATE jobs SET status = ?, progress_json = ?, updated_at = ? WHERE id = ?")
+      .run(newStatus, JSON.stringify(progress), now(), jobId);
+    db.prepare("INSERT INTO job_events (id, job_id, status, at) VALUES (?, ?, ?, ?)")
+      .run(`${jobId}_${newStatus}_${Date.now()}`, jobId, newStatus, now());
   }
 
   function cancelJob(userId, jobId) {
@@ -129,7 +141,9 @@ function createJobsService(app) {
     if (!row) {
       return null;
     }
-    if (!["queued", "dispatching", "running"].includes(row.status)) {
+    try {
+      assertTransition(JOB, row.status, JOB.CANCELED, "job");
+    } catch {
       return {
         error: {
           code: "invalid_cancel_target",
@@ -139,9 +153,9 @@ function createJobsService(app) {
     }
 
     db.prepare("UPDATE jobs SET status = ?, progress_json = ?, updated_at = ? WHERE id = ?")
-      .run("canceled", JSON.stringify({ percent: 0, currentStep: "canceled" }), now(), jobId);
+      .run(JOB.CANCELED, JSON.stringify({ percent: 0, currentStep: JOB.CANCELED }), now(), jobId);
     db.prepare("INSERT INTO job_events (id, job_id, status, at) VALUES (?, ?, ?, ?)")
-      .run(`${jobId}_canceled_${Date.now()}`, jobId, "canceled", now());
+      .run(`${jobId}_${JOB.CANCELED}_${Date.now()}`, jobId, JOB.CANCELED, now());
 
     return getJob(userId, jobId);
   }
@@ -152,7 +166,7 @@ function createJobsService(app) {
       return null;
     }
     const failure = parseFailure(row.failure_json);
-    if (row.status !== "failed" || !failure || !failure.retryable) {
+    if (row.status !== JOB.FAILED || !failure || !failure.retryable) {
       return {
         error: {
           code: "invalid_retry_target",
@@ -173,7 +187,8 @@ function createJobsService(app) {
     listJobs,
     getJob,
     cancelJob,
-    retryJob
+    retryJob,
+    updateJobStatus
   };
 }
 

@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const path = require("path");
+const { PROJECT, assertTransition } = require("../../shared/constants/statuses");
 
 function now() {
   return new Date().toISOString();
@@ -41,12 +42,12 @@ function createProjectsService(app) {
       userId,
       payload.name,
       payload.sourceType,
-      "draft",
+      PROJECT.DRAFT,
       payload.selectedDeviceId || "",
       payload.machineProfileId || "",
       payload.materialProfileId || "",
-      JSON.stringify(payload.content || { text: "", imageAssetId: null, fontId: "fnt_001", fontSize: 100, lineGap: 0, processorPresetId: null }),
-      JSON.stringify(payload.layout || { widthMm: 80, heightMm: 50, rotationDeg: 0, align: "center" }),
+      JSON.stringify(payload.content || { text: "", imageAssetId: null, fontId: "fnt_001", fontSize: 100, lineGap: 0, charSpacing: 0, strokeWidth: 0, processorPresetId: null, cropBounds: null, offsetXMm: 0, offsetYMm: 0, scaleFactor: 1, contentRotation: 0 }),
+      JSON.stringify(payload.layout || { widthMm: 80, heightMm: 50, rotationDeg: 0, align: "center", blockWidth: 0 }),
       JSON.stringify(payload.processParams || { speed: 1000, power: 65, passes: 1, lineSpacing: 1.2 }),
       createdAt,
       createdAt
@@ -54,7 +55,7 @@ function createProjectsService(app) {
 
     return {
       id,
-      status: "draft"
+      status: PROJECT.DRAFT
     };
   }
 
@@ -143,11 +144,12 @@ function createProjectsService(app) {
     if (!existing) {
       return null;
     }
+    assertTransition(PROJECT, existing.status, PROJECT.ARCHIVED, "project");
     db.prepare(`
       UPDATE projects
       SET status = ?, updated_at = ?
       WHERE id = ? AND owner_user_id = ?
-    `).run("archived", now(), projectId, userId);
+    `).run(PROJECT.ARCHIVED, now(), projectId, userId);
     return getProject(userId, projectId);
   }
 
@@ -156,11 +158,12 @@ function createProjectsService(app) {
     if (!existing) {
       return null;
     }
+    assertTransition(PROJECT, existing.status, PROJECT.DRAFT, "project");
     db.prepare(`
       UPDATE projects
       SET status = ?, updated_at = ?
       WHERE id = ? AND owner_user_id = ?
-    `).run("draft", now(), projectId, userId);
+    `).run(PROJECT.DRAFT, now(), projectId, userId);
     return getProject(userId, projectId);
   }
 
@@ -171,6 +174,108 @@ function createProjectsService(app) {
     }
     db.prepare("DELETE FROM projects WHERE id = ? AND owner_user_id = ?").run(projectId, userId);
     return { deleted: true };
+  }
+
+  function exportProject(userId, projectId) {
+    const project = getProject(userId, projectId);
+    if (!project) {
+      return null;
+    }
+    return {
+      formatVersion: "1.0",
+      exportedAt: now(),
+      project: {
+        name: project.name,
+        sourceType: project.sourceType,
+        selectedDeviceId: project.selectedDeviceId,
+        machineProfileId: project.machineProfileId,
+        materialProfileId: project.materialProfileId,
+        content: project.content,
+        layout: project.layout,
+        processParams: project.processParams
+      }
+    };
+  }
+
+  function importProject(userId, payload) {
+    if (!payload || payload.formatVersion !== "1.0" || !payload.project) {
+      return null;
+    }
+    const data = payload.project;
+    return createProject(userId, {
+      name: data.name || "Imported Project",
+      sourceType: data.sourceType || "text",
+      selectedDeviceId: data.selectedDeviceId || "",
+      machineProfileId: data.machineProfileId || "",
+      materialProfileId: data.materialProfileId || "",
+      content: data.content,
+      layout: data.layout,
+      processParams: data.processParams
+    });
+  }
+
+  function preflightCheck(userId, projectId) {
+    const project = getProject(userId, projectId);
+    if (!project) {
+      return { valid: false, errors: [{ field: "project", message: "项目不存在" }] };
+    }
+
+    const errors = [];
+    const warnings = [];
+
+    // Check content exists
+    if (project.sourceType === "text" && !project.content.text) {
+      errors.push({ field: "content.text", message: "文字项目内容不能为空" });
+    }
+    if (project.sourceType === "image" && !project.content.imageAssetId) {
+      errors.push({ field: "content.imageAssetId", message: "图片项目未选择素材" });
+    }
+
+    // Check device
+    if (!project.selectedDeviceId) {
+      errors.push({ field: "selectedDeviceId", message: "未选择设备" });
+    } else {
+      const device = app.db.prepare("SELECT * FROM devices WHERE id = ?").get(project.selectedDeviceId);
+      if (!device) {
+        errors.push({ field: "selectedDeviceId", message: "所选设备不存在" });
+      }
+    }
+
+    // Check machine profile dimensions
+    if (project.machineProfileId) {
+      const profile = app.db.prepare("SELECT * FROM machine_profiles WHERE id = ?").get(project.machineProfileId);
+      if (profile) {
+        const workArea = JSON.parse(profile.work_area_json || "{}");
+        if (workArea.widthMm && project.layout.widthMm > workArea.widthMm) {
+          errors.push({ field: "layout.widthMm", message: `项目宽度(${project.layout.widthMm}mm)超过机器加工范围(${workArea.widthMm}mm)` });
+        }
+        if (workArea.heightMm && project.layout.heightMm > workArea.heightMm) {
+          errors.push({ field: "layout.heightMm", message: `项目高度(${project.layout.heightMm}mm)超过机器加工范围(${workArea.heightMm}mm)` });
+        }
+      } else {
+        warnings.push({ field: "machineProfileId", message: "所选机器配置不存在，跳过尺寸检查" });
+      }
+    }
+
+    // Check process params
+    if (project.processParams.speed <= 0) {
+      errors.push({ field: "processParams.speed", message: "速度必须大于 0" });
+    }
+    if (project.processParams.power < 1 || project.processParams.power > 100) {
+      errors.push({ field: "processParams.power", message: "功率应在 1-100 之间" });
+    }
+    if ((project.processParams.passes || 1) < 1) {
+      errors.push({ field: "processParams.passes", message: "加工次数不能小于 1" });
+    }
+    if ((project.processParams.lineSpacing || 1) < 0.1) {
+      warnings.push({ field: "processParams.lineSpacing", message: "行距过小可能造成过度雕刻" });
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+      warnings
+    };
   }
 
   function createAsset(userId, projectId, payload) {
@@ -202,6 +307,9 @@ function createProjectsService(app) {
     archiveProject,
     restoreProject,
     deleteProject,
+    exportProject,
+    importProject,
+    preflightCheck,
     createAsset
   };
 }
