@@ -319,6 +319,7 @@ These are **not** yet solved and should remain explicit:
 
 Read in this order:
 
+0. `docs/superpowers/plans/2026-05-02-continuation-memory.md`
 1. `docs/superpowers/plans/2026-05-01-kxapp-reference-baseline.md`
 2. `docs/superpowers/plans/2026-05-01-kxapp-wechat-mini-program.md`
 3. `docs/superpowers/plans/2026-05-01-kxapp-api-and-data-model.md`
