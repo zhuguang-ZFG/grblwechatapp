@@ -38,7 +38,9 @@ function registerJobRoutes(app) {
   });
 
   app.post("/api/v1/jobs/:id/retry", { preHandler: [app.authenticate] }, async (request, reply) => {
-    const job = app.jobsService.retryJob(request.currentUser.id, request.params.id);
+    const job = app.jobsService.retryJob(request.currentUser.id, request.params.id, {
+      requestId: request.requestId
+    });
     if (!job) {
       return sendError(reply, 404, "job_not_found", "Job was not found");
     }

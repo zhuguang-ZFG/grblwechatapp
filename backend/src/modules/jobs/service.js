@@ -66,7 +66,9 @@ function createJobsService(app) {
     db.prepare("INSERT INTO job_events (id, job_id, status, at) VALUES (?, ?, ?, ?)")
       .run(`${jobId}_${JOB.QUEUED}`, jobId, JOB.QUEUED, createdAt);
 
-    app.gatewayService.dispatchJob(jobId);
+    app.gatewayService.dispatchJob(jobId, {
+      requestId: options.requestId || ""
+    });
 
     return {
       jobId,
@@ -197,7 +199,7 @@ function createJobsService(app) {
     return getJob(userId, jobId);
   }
 
-  function retryJob(userId, jobId) {
+  function retryJob(userId, jobId, options = {}) {
     const row = getOwnedJobRow(userId, jobId);
     if (!row) {
       return null;
@@ -218,7 +220,7 @@ function createJobsService(app) {
       deviceId: row.device_id
     }, {
       traceId: row.trace_id || undefined,
-      requestId: ""
+      requestId: options.requestId || ""
     });
   }
 

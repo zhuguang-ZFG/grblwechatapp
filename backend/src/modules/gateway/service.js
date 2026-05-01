@@ -147,7 +147,7 @@ function createGatewayService(app) {
     return getPendingJobPayload(jobId);
   }
 
-  function acknowledgeJob(deviceId, jobId) {
+  function acknowledgeJob(deviceId, jobId, options = {}) {
     const queue = pendingJobs.get(deviceId);
     const lease = inFlightJobs.get(deviceId);
     if (queue && queue[0] === jobId && lease && lease.jobId === jobId) {
@@ -155,6 +155,7 @@ function createGatewayService(app) {
       inFlightJobs.delete(deviceId);
       if (queue.length === 0) pendingJobs.delete(deviceId);
       app.logEvent("gateway_job_acknowledged", {
+        requestId: options.requestId || "",
         deviceId,
         jobId
       }, {
@@ -187,7 +188,9 @@ function createGatewayService(app) {
     }
 
     if (status === JOB.RUNNING || status === JOB.COMPLETED || status === JOB.FAILED) {
-      acknowledgeJob(deviceId, jobId);
+      acknowledgeJob(deviceId, jobId, {
+        requestId: options.requestId || ""
+      });
     }
 
     if (status === JOB.RUNNING) {
