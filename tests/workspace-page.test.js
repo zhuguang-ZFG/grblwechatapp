@@ -23,20 +23,21 @@ function loadWorkspacePage() {
       getSelectedDevice() {
         return {
           id: "dev_123",
-          name: "KX Laser A1",
-          onlineStatus: "online"
+          name: "Old Device Name",
+          onlineStatus: "offline"
         };
       },
       async listProjects() {
         return [
           { id: "prj_1", name: "Project A", sourceType: "text", selectedDeviceId: "dev_123" },
-          { id: "prj_2", name: "Project B", sourceType: "image", selectedDeviceId: "" }
+          { id: "prj_2", name: "Project B", sourceType: "image", selectedDeviceId: "" },
+          { id: "prj_3", name: "Project C", sourceType: "text", selectedDeviceId: "dev_missing" }
         ];
       },
       async listDevices() {
         return {
           items: [
-            { id: "dev_123", name: "KX Laser A1" }
+            { id: "dev_123", name: "KX Laser A1", onlineStatus: "online" }
           ]
         };
       }
@@ -60,7 +61,7 @@ function loadWorkspacePage() {
     loaded: true,
     exports: {
       formatDeviceStatus(value) {
-        return value;
+        return value ? `status:${value}` : "";
       }
     }
   };
@@ -81,8 +82,11 @@ async function run() {
   await pageDefinition.onShow.call(ctx);
 
   assert.strictEqual(ctx.data.currentDevice.name, "KX Laser A1");
+  assert.strictEqual(ctx.data.currentDevice.onlineStatus, "online");
+  assert.strictEqual(ctx.data.currentDevice.onlineStatusLabel, "status:online");
   assert.strictEqual(ctx.data.projects[0].deviceName, "KX Laser A1");
   assert.strictEqual(ctx.data.projects[1].deviceName, "待选择设备");
+  assert.strictEqual(ctx.data.projects[2].deviceName, "dev_missing");
 }
 
 run().catch((error) => {

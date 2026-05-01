@@ -14,16 +14,23 @@ Page({
     }
     try {
       const rawDevice = api.getSelectedDevice() || {};
-      const currentDevice = {
-        ...rawDevice,
-        onlineStatusLabel: formatDeviceStatus(rawDevice.onlineStatus)
-      };
-      const allProjects = await api.listProjects();
-      const devices = await api.listDevices();
-      const deviceMap = Object.fromEntries((devices.items || []).map((item) => [item.id, item.name]));
+      const [allProjects, devices] = await Promise.all([
+        api.listProjects(),
+        api.listDevices()
+      ]);
+      const deviceMap = Object.fromEntries((devices.items || []).map((item) => [item.id, item]));
+      const currentDeviceSource = (rawDevice.id && deviceMap[rawDevice.id]) || rawDevice;
+      const currentDevice = currentDeviceSource.id
+        ? {
+          ...currentDeviceSource,
+          onlineStatusLabel: formatDeviceStatus(currentDeviceSource.onlineStatus)
+        }
+        : {};
       const projects = allProjects.slice(0, 3).map((item) => ({
         ...item,
-        deviceName: deviceMap[item.selectedDeviceId] || "待选择设备"
+        deviceName: item.selectedDeviceId
+          ? ((deviceMap[item.selectedDeviceId] && deviceMap[item.selectedDeviceId].name) || item.selectedDeviceId)
+          : "待选择设备"
       }));
       this.setData({ currentDevice, projects });
     } catch (error) {

@@ -5,3 +5,4 @@ backend/storage/
 *.log
 .DS_Store
 Thumbs.db
+.codex-tools/
