@@ -121,6 +121,15 @@ Copy this section for each new verification pass.
 - profile page:
   - PASS / PARTIAL / FAIL / SKIP
   - notes:
+- help center page:
+  - PASS / PARTIAL / FAIL / SKIP
+  - notes:
+- user agreement page:
+  - PASS / PARTIAL / FAIL / SKIP
+  - notes:
+- privacy policy page:
+  - PASS / PARTIAL / FAIL / SKIP
+  - notes:
 
 **Issues Found**
 
@@ -134,6 +143,10 @@ Copy this section for each new verification pass.
 **Screenshots / Evidence**
 
 - screenshot paths:
+  - login page legal links
+  - profile page help/legal links
+  - help center FAQ section
+  - legal pages version info section
 - request traces:
 - console errors:
 
@@ -217,6 +230,15 @@ Copy this section for each new verification pass.
   - SKIP
   - notes: not exercised in WeChat DevTools during this session
 - profile page:
+  - SKIP
+  - notes: not exercised in WeChat DevTools during this session
+- help center page:
+  - SKIP
+  - notes: not exercised in WeChat DevTools during this session
+- user agreement page:
+  - SKIP
+  - notes: not exercised in WeChat DevTools during this session
+- privacy policy page:
   - SKIP
   - notes: not exercised in WeChat DevTools during this session
 

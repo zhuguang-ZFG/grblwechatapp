@@ -491,6 +491,27 @@ Expected:
 - dispatch calls backend and transitions job state
 - UI reflects current dispatch mode (simulation/real)
 
+## 4.20 Help and legal pages
+
+Goal:
+
+- verify help center, user agreement, and privacy policy entry paths
+
+Steps:
+
+1. open login page
+2. tap "查看用户协议" and "查看隐私政策"
+3. return and login
+4. open profile page
+5. tap "帮助中心"
+6. tap "用户协议" and "隐私政策"
+
+Expected:
+
+- both legal pages open from login and profile entries
+- help page renders operation order, capability boundary, and FAQ
+- legal pages display version/effective/update info blocks
+
 ## 4.9 Task failure and retry flow
 
 Goal:
@@ -561,6 +582,8 @@ Expected:
 ### Profile
 
 - user summary loads from backend
+- help center entry is reachable
+- user agreement and privacy policy entries are reachable
 
 ### Templates
 
@@ -629,5 +652,10 @@ When re-running this checklist in a future session, record:
 - pages manually verified
 - pages skipped
 - any failing route or UI state
+- screenshots for:
+  - login page legal links
+  - profile page help/legal links
+  - help center FAQ section
+  - legal pages version info section
 
 This keeps manual verification usable as a living baseline instead of a one-off memory.

@@ -6,6 +6,25 @@
   </view>
 
   <view class="section stack">
+    <text class="item-title">版本信息</text>
+    <text class="item-meta">- 协议版本：v0.2-draft</text>
+    <text class="item-meta">- 生效日期：2026-05-02</text>
+    <text class="item-meta">- 最近更新：2026-05-02</text>
+  </view>
+
+  <view class="section stack">
+    <text class="item-title">适用范围</text>
+    <text class="item-meta">- 适用于 KXApp 微信小程序相关功能与服务。</text>
+    <text class="item-meta">- 使用本服务即视为你已阅读并同意本协议。</text>
+  </view>
+
+  <view class="section stack">
+    <text class="item-title">能力边界</text>
+    <text class="item-meta">- 小程序提供轻量编辑、任务提交、状态查询能力。</text>
+    <text class="item-meta">- 后端负责预览生成、任务调度与结果回传。</text>
+  </view>
+
+  <view class="section stack">
     <text class="item-title">1. 服务范围</text>
     <text class="item-meta">- 小程序提供账号登录、项目编辑、预览与任务提交能力。</text>
     <text class="item-meta">- 复杂生成与设备调度由后端服务处理。</text>
@@ -21,5 +40,11 @@
     <text class="item-title">3. 免责声明</text>
     <text class="item-meta">- 因网络波动、设备状态等导致任务失败时，系统会给出失败码与重试建议。</text>
     <text class="item-meta">- 请在提交任务前确认参数与设备状态。</text>
+  </view>
+
+  <view class="section stack">
+    <text class="item-title">联系方式</text>
+    <text class="item-meta">- 邮箱（占位）：legal@example.com</text>
+    <text class="item-meta">- 反馈入口：我的 -> 帮助中心</text>
   </view>
 </view>

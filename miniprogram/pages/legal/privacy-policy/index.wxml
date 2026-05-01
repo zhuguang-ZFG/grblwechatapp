@@ -6,6 +6,25 @@
   </view>
 
   <view class="section stack">
+    <text class="item-title">版本信息</text>
+    <text class="item-meta">- 政策版本：v0.2-draft</text>
+    <text class="item-meta">- 生效日期：2026-05-02</text>
+    <text class="item-meta">- 最近更新：2026-05-02</text>
+  </view>
+
+  <view class="section stack">
+    <text class="item-title">适用范围</text>
+    <text class="item-meta">- 本政策适用于 KXApp 微信小程序提供的相关服务。</text>
+    <text class="item-meta">- 你使用服务过程中产生的信息处理遵循本政策。</text>
+  </view>
+
+  <view class="section stack">
+    <text class="item-title">能力边界</text>
+    <text class="item-meta">- 小程序负责展示与提交，不在本地执行重计算任务。</text>
+    <text class="item-meta">- 关键处理由后端执行，并通过接口返回结果。</text>
+  </view>
+
+  <view class="section stack">
     <text class="item-title">1. 信息收集</text>
     <text class="item-meta">- 账号信息：昵称、头像、手机号。</text>
     <text class="item-meta">- 业务信息：项目内容、任务记录、设备绑定关系。</text>
@@ -21,5 +40,11 @@
     <text class="item-title">3. 安全与保存</text>
     <text class="item-meta">- 我们会采取合理措施保护数据安全。</text>
     <text class="item-meta">- 你可通过退出登录、删除内容等方式管理账户数据。</text>
+  </view>
+
+  <view class="section stack">
+    <text class="item-title">联系方式</text>
+    <text class="item-meta">- 邮箱（占位）：privacy@example.com</text>
+    <text class="item-meta">- 反馈入口：我的 -> 帮助中心</text>
   </view>
 </view>

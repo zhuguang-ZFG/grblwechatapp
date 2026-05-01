@@ -94,3 +94,14 @@ npm run test:stable
 
 - `我的` 页「帮助中心」入口已接入真实页面：`miniprogram/pages/help/index`
 - 帮助中心页面提供推荐操作顺序与当前能力边界，降低新同学上手成本
+- `登录` 页与 `我的` 页均已接入：
+  - `用户协议`：`miniprogram/pages/legal/user-agreement/index`
+  - `隐私政策`：`miniprogram/pages/legal/privacy-policy/index`
+- 帮助中心已升级为“适用范围 + 操作顺序 + 能力边界 + 常见问题 + 联系方式占位”
+- 协议与隐私页已补充版本信息区块（版本号、生效日期、最近更新）
+- 帮助中心 FAQ 已改为配置化数据源：`miniprogram/config/help-center.js`
+
+法务替换说明：
+
+- 当前协议与隐私页面为“示例版结构化文案”，便于先打通入口与阅读流程
+- 后续可仅替换页面正文内容，不需修改页面路由和入口绑定
