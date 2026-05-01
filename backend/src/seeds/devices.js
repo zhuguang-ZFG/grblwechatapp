@@ -7,6 +7,7 @@ module.exports = [
     bind_status: "bound",
     online_status: "online",
     binding_code: "ABCD1234",
+    device_token: "devtok_A1_seed",
     last_seen_at: "2026-05-01T10:08:00Z"
   },
   {
@@ -17,6 +18,7 @@ module.exports = [
     bind_status: "unbound",
     online_status: "offline",
     binding_code: "EFGH5678",
+    device_token: "devtok_B2_seed",
     last_seen_at: "2026-04-30T18:20:00Z"
   }
 ];

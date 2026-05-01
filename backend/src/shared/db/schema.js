@@ -1,3 +1,11 @@
+function ensureDeviceTokenColumn(db) {
+  const columns = db.prepare("PRAGMA table_info(devices)").all();
+  const hasDeviceToken = columns.some((column) => column.name === "device_token");
+  if (!hasDeviceToken) {
+    db.exec("ALTER TABLE devices ADD COLUMN device_token TEXT DEFAULT '';");
+  }
+}
+
 function applySchema(db) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
@@ -32,6 +40,7 @@ function applySchema(db) {
       bind_status TEXT NOT NULL,
       online_status TEXT NOT NULL,
       binding_code TEXT NOT NULL UNIQUE,
+      device_token TEXT DEFAULT '',
       machine_profile_id TEXT DEFAULT '',
       last_seen_at TEXT NOT NULL
     );
@@ -158,6 +167,7 @@ function applySchema(db) {
       created_at TEXT NOT NULL
     );
   `);
+  ensureDeviceTokenColumn(db);
 }
 
 module.exports = {

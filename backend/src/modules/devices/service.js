@@ -1,3 +1,5 @@
+const crypto = require("crypto");
+
 function createDevicesService(app) {
   const db = app.db;
 
@@ -31,15 +33,17 @@ function createDevicesService(app) {
       return { error: { code: "device_already_bound", message: "该设备已被绑定" } };
     }
 
+    const deviceToken = `devtok_${crypto.randomBytes(12).toString("hex")}`;
     db.prepare(`
       UPDATE devices
-      SET owner_user_id = ?, bind_status = 'bound', online_status = 'online'
+      SET owner_user_id = ?, bind_status = 'bound', online_status = 'online', device_token = ?
       WHERE id = ?
-    `).run(userId, device.id);
+    `).run(userId, deviceToken, device.id);
 
     return {
       deviceId: device.id,
-      bindStatus: "bound"
+      bindStatus: "bound",
+      deviceToken
     };
   }
 

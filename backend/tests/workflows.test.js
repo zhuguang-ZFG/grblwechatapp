@@ -657,3 +657,112 @@ test("second user cannot create job referencing another user's device", async ()
 
   await app.close();
 });
+
+test("gateway endpoints require valid device authentication", async () => {
+  const { app } = createTestApp();
+  await app.ready();
+
+  const heartbeatWithoutToken = await app.inject({
+    method: "POST",
+    url: "/api/v1/gateway/heartbeat",
+    payload: {
+      deviceId: "dev_123"
+    }
+  });
+  assert.equal(heartbeatWithoutToken.statusCode, 400);
+  assert.equal(heartbeatWithoutToken.json().code, "missing_device_auth");
+
+  const heartbeatWithInvalidToken = await app.inject({
+    method: "POST",
+    url: "/api/v1/gateway/heartbeat",
+    payload: {
+      deviceId: "dev_123",
+      deviceToken: "invalid-token"
+    }
+  });
+  assert.equal(heartbeatWithInvalidToken.statusCode, 401);
+  assert.equal(heartbeatWithInvalidToken.json().code, "invalid_device_auth");
+
+  await app.close();
+});
+
+test("gateway pending job lease expires and allows re-poll", async () => {
+  const { app } = createTestApp({
+    env: {
+      gatewayDispatchLeaseMs: 40
+    }
+  });
+  await app.ready();
+  const token = await registerAndToken(app);
+  const projectId = await createProject(app, token);
+
+  const previewCreate = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectId}/preview`,
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      forceRegenerate: true
+    }
+  });
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  const generationCreate = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectId}/generate`,
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      previewId: previewCreate.json().previewId
+    }
+  });
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  const device = app.db.prepare("SELECT id, device_token FROM devices WHERE id = ?").get("dev_123");
+
+  await app.inject({
+    method: "POST",
+    url: "/api/v1/gateway/heartbeat",
+    payload: {
+      deviceId: device.id,
+      deviceToken: device.device_token
+    }
+  });
+
+  const jobCreate = await app.inject({
+    method: "POST",
+    url: "/api/v1/jobs",
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      projectId,
+      generationId: generationCreate.json().generationId,
+      deviceId: "dev_123",
+      executionMode: "offline_file"
+    }
+  });
+  const jobId = jobCreate.json().jobId;
+
+  const firstPoll = await app.inject({
+    method: "GET",
+    url: `/api/v1/gateway/jobs/pending?deviceId=${device.id}&deviceToken=${device.device_token}`
+  });
+  assert.equal(firstPoll.statusCode, 200);
+  assert.equal(firstPoll.json().pending, true);
+  assert.equal(firstPoll.json().job.jobId, jobId);
+
+  await new Promise((resolve) => setTimeout(resolve, 60));
+
+  const secondPoll = await app.inject({
+    method: "GET",
+    url: `/api/v1/gateway/jobs/pending?deviceId=${device.id}&deviceToken=${device.device_token}`
+  });
+  assert.equal(secondPoll.statusCode, 200);
+  assert.equal(secondPoll.json().pending, true);
+  assert.equal(secondPoll.json().job.jobId, jobId);
+
+  await app.close();
+});

@@ -1,11 +1,23 @@
 const { sendError } = require("../../shared/http/error-response");
 
 function registerGatewayRoutes(app) {
+  function requireDeviceAuth(deviceId, deviceToken, reply) {
+    if (!deviceId || !deviceToken) {
+      sendError(reply, 400, "missing_device_auth", "deviceId and deviceToken are required");
+      return false;
+    }
+    if (!app.gatewayService.verifyDeviceAuth(deviceId, deviceToken)) {
+      sendError(reply, 401, "invalid_device_auth", "Device authentication failed");
+      return false;
+    }
+    return true;
+  }
+
   // Device heartbeat endpoint
   app.post("/api/v1/gateway/heartbeat", async (request, reply) => {
-    const { deviceId } = request.body || {};
-    if (!deviceId) {
-      return sendError(reply, 400, "missing_device_id", "Device ID is required");
+    const { deviceId, deviceToken } = request.body || {};
+    if (!requireDeviceAuth(deviceId, deviceToken, reply)) {
+      return;
     }
     app.gatewayService.handleHeartbeat(deviceId);
     const pending = app.gatewayService.getPendingJob(deviceId);
@@ -13,18 +25,24 @@ function registerGatewayRoutes(app) {
   });
 
   // Device polls for pending job
-  app.get("/api/v1/gateway/jobs/pending", async (request) => {
+  app.get("/api/v1/gateway/jobs/pending", async (request, reply) => {
     const deviceId = request.query.deviceId || "";
-    if (!deviceId) return { pending: false, job: null };
+    const deviceToken = request.query.deviceToken || "";
+    if (!requireDeviceAuth(deviceId, deviceToken, reply)) {
+      return;
+    }
     const job = app.gatewayService.getPendingJob(deviceId);
     return { pending: !!job, job };
   });
 
   // Device reports job progress
   app.post("/api/v1/gateway/jobs/progress", async (request, reply) => {
-    const { deviceId, jobId, status, percent, currentStep } = request.body || {};
-    if (!deviceId || !jobId) {
-      return sendError(reply, 400, "missing_fields", "deviceId and jobId are required");
+    const { deviceId, deviceToken, jobId, status, percent, currentStep } = request.body || {};
+    if (!requireDeviceAuth(deviceId, deviceToken, reply)) {
+      return;
+    }
+    if (!jobId) {
+      return sendError(reply, 400, "missing_job_id", "jobId is required");
     }
     app.gatewayService.reportProgress(deviceId, jobId, status || "running", percent || 0, currentStep || "");
     return { status: "ok" };

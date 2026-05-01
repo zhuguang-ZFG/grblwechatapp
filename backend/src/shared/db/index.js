@@ -20,9 +20,9 @@ function createDatabase(databaseFile) {
 
   const insertDevice = db.prepare(`
     INSERT OR IGNORE INTO devices (
-      id, name, model, serial_no, owner_user_id, bind_status, online_status, binding_code, last_seen_at
+      id, name, model, serial_no, owner_user_id, bind_status, online_status, binding_code, device_token, last_seen_at
     ) VALUES (
-      @id, @name, @model, @serial_no, '', @bind_status, @online_status, @binding_code, @last_seen_at
+      @id, @name, @model, @serial_no, '', @bind_status, @online_status, @binding_code, @device_token, @last_seen_at
     )
   `);
 

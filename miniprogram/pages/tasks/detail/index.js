@@ -85,11 +85,33 @@ Page({
     this._stopPolling();
   },
 
-  _startPolling() {
+  onHide() {
     this._stopPolling();
+  },
+
+  _getPollIntervalByStatus(status) {
+    if (status === "running") {
+      return 5000;
+    }
+    if (status === "queued" || status === "dispatching") {
+      return 3000;
+    }
+    return 0;
+  },
+
+  _startPolling(intervalMs) {
+    if (!intervalMs) {
+      this._stopPolling();
+      return;
+    }
+    if (this._pollTimer && this._pollIntervalMs === intervalMs) {
+      return;
+    }
+    this._stopPolling();
+    this._pollIntervalMs = intervalMs;
     this._pollTimer = setInterval(() => {
       this.refreshJob();
-    }, 3000);
+    }, intervalMs);
   },
 
   _stopPolling() {
@@ -97,6 +119,7 @@ Page({
       clearInterval(this._pollTimer);
       this._pollTimer = null;
     }
+    this._pollIntervalMs = 0;
   },
 
   async refreshJob() {
@@ -137,7 +160,7 @@ Page({
     const isRunning = ["queued", "dispatching", "running"].includes(job.status);
     if (typeof this._startPolling === "function") {
       if (isRunning) {
-        this._startPolling();
+        this._startPolling(this._getPollIntervalByStatus(job.status));
       } else {
         this._stopPolling();
       }
