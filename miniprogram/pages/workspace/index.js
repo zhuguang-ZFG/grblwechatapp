@@ -19,8 +19,8 @@ Page({
         api.listDevices()
       ]);
       const deviceMap = Object.fromEntries((devices.items || []).map((item) => [item.id, item]));
-      const currentDeviceSource = (rawDevice.id && deviceMap[rawDevice.id]) || rawDevice;
-      const currentDevice = currentDeviceSource.id
+      const currentDeviceSource = rawDevice.id ? deviceMap[rawDevice.id] : null;
+      const currentDevice = currentDeviceSource
         ? {
           ...currentDeviceSource,
           onlineStatusLabel: formatDeviceStatus(currentDeviceSource.onlineStatus) || "离线"

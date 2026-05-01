@@ -104,6 +104,19 @@ async function run() {
   assert.deepStrictEqual(emptyStateData.currentDevice, {
     onlineStatusLabel: "未选择设备"
   });
+
+  const staleDeviceData = await renderWorkspace({
+    selectedDevice: {
+      id: "dev_stale",
+      name: "Removed Device",
+      onlineStatus: "offline"
+    },
+    projects: [],
+    devices: []
+  });
+  assert.deepStrictEqual(staleDeviceData.currentDevice, {
+    onlineStatusLabel: "未选择设备"
+  });
 }
 
 run().catch((error) => {
