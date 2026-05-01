@@ -79,9 +79,9 @@ node tests/failure-code-doc-sync.test.js
 
 ### P0 Next
 
-1. Add request-level log correlation for templates/profiles/dashboard/search routes.
-2. Add requestId correlation to gateway lease expiry/offline timer logs (timer tick correlation strategy).
-3. Add quick troubleshooting snippet using `scripts/gateway-ack-smoke.js` + `scripts/log-query.ps1`.
+1. Add requestId correlation to gateway lease expiry/offline timer logs (timer tick correlation strategy).
+2. Add quick troubleshooting snippet using `scripts/gateway-ack-smoke.js` + `scripts/log-query.ps1`.
+3. Add one observability smoke test for dashboard/search/template/profile event logging keys.
 
 ### P1 Next
 

@@ -121,6 +121,15 @@ function buildApp(options = {}) {
     const deviceCount = db.prepare("SELECT COUNT(*) AS c FROM devices WHERE owner_user_id = ?").get(userId).c;
     const counts = { queued: 0, dispatching: 0, running: 0, completed: 0, failed: 0, canceled: 0 };
     jobCounts.forEach((row) => { counts[row.status] = row.c; });
+    app.logEvent("dashboard_stats_fetched", {
+      requestId: request.requestId,
+      userId,
+      projectCount,
+      deviceCount,
+      totalJobs: Object.values(counts).reduce((a, b) => a + b, 0)
+    }, {
+      component: "dashboard"
+    });
     return {
       projectCount,
       jobCounts: counts,
@@ -133,7 +142,18 @@ function buildApp(options = {}) {
   app.get("/api/v1/search", { preHandler: [app.authenticate] }, async (request) => {
     const userId = request.currentUser.id;
     const q = (request.query.q || "").trim();
-    if (!q) return { projects: [], templates: [] };
+    if (!q) {
+      app.logEvent("search_executed", {
+        requestId: request.requestId,
+        userId,
+        query: "",
+        projectCount: 0,
+        templateCount: 0
+      }, {
+        component: "search"
+      });
+      return { projects: [], templates: [] };
+    }
     const like = `%${q}%`;
     const db = app.db;
     const projects = db.prepare(`
@@ -146,6 +166,15 @@ function buildApp(options = {}) {
       WHERE name LIKE ? OR description LIKE ?
       LIMIT 10
     `).all(like, like).map((r) => ({ id: r.id, name: r.name, description: r.description, sourceType: r.source_type, category: r.category }));
+    app.logEvent("search_executed", {
+      requestId: request.requestId,
+      userId,
+      query: q,
+      projectCount: projects.length,
+      templateCount: templates.length
+    }, {
+      component: "search"
+    });
     return { projects, templates };
   });
 
