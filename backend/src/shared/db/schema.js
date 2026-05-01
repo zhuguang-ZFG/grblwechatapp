@@ -32,7 +32,33 @@ function applySchema(db) {
       bind_status TEXT NOT NULL,
       online_status TEXT NOT NULL,
       binding_code TEXT NOT NULL UNIQUE,
+      machine_profile_id TEXT DEFAULT '',
       last_seen_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS machine_profiles (
+      id TEXT PRIMARY KEY,
+      device_model TEXT NOT NULL,
+      name TEXT NOT NULL,
+      work_area_width_mm REAL NOT NULL,
+      work_area_height_mm REAL NOT NULL,
+      origin_mode TEXT DEFAULT 'bottom_left',
+      supports_offline_print INTEGER DEFAULT 1,
+      default_speed REAL DEFAULT 1200,
+      default_power REAL DEFAULT 70,
+      default_line_spacing REAL DEFAULT 1.0,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS material_profiles (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      category TEXT DEFAULT '',
+      recommended_speed REAL DEFAULT 1000,
+      recommended_power REAL DEFAULT 65,
+      recommended_passes INTEGER DEFAULT 1,
+      notes TEXT DEFAULT '',
+      created_at TEXT NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS projects (
@@ -42,6 +68,8 @@ function applySchema(db) {
       source_type TEXT NOT NULL,
       status TEXT NOT NULL,
       selected_device_id TEXT DEFAULT '',
+      machine_profile_id TEXT DEFAULT '',
+      material_profile_id TEXT DEFAULT '',
       content_json TEXT NOT NULL,
       layout_json TEXT NOT NULL,
       process_params_json TEXT NOT NULL,
@@ -90,6 +118,26 @@ function applySchema(db) {
       job_id TEXT NOT NULL,
       status TEXT NOT NULL,
       at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS fonts (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      family TEXT NOT NULL,
+      style TEXT DEFAULT 'regular',
+      category TEXT DEFAULT 'sans-serif',
+      preview_url TEXT DEFAULT '',
+      sort_order INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS image_processors (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL,
+      default_params_json TEXT NOT NULL,
+      sort_order INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL
     );
   `);
 }

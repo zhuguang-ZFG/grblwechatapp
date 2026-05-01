@@ -18,10 +18,73 @@
       <textarea class="textarea" value="{{project.content.text}}" bindinput="onTextInput" placeholder="输入要雕刻的文字" />
     </view>
 
+    <view wx:if="{{project.sourceType === 'text'}}" class="field">
+      <text class="label">字体</text>
+      <picker mode="selector" range="{{fontOptions}}" range-key="name" value="{{fontIndex}}" bindchange="onFontChange">
+        <view class="input">{{fontOptions[fontIndex].name || '选择字体'}}</view>
+      </picker>
+    </view>
+
+    <view wx:if="{{project.sourceType === 'text'}}" class="row">
+      <view class="field">
+        <text class="label">字号(px)</text>
+        <input class="input" type="digit" value="{{project.content.fontSize}}" data-field="fontSize" bindinput="onContentInput" />
+      </view>
+      <view class="field">
+        <text class="label">行间距(px)</text>
+        <input class="input" type="digit" value="{{project.content.lineGap}}" data-field="lineGap" bindinput="onContentInput" />
+      </view>
+    </view>
+
+    <view wx:if="{{project.sourceType === 'text'}}" class="field">
+      <text class="label">对齐方式</text>
+      <view class="row">
+        <button class="{{project.layout.align === 'left' ? 'ghost-btn' : 'ghost-btn'}}" data-value="left" bindtap="onAlignChange">左对齐</button>
+        <button class="{{project.layout.align === 'center' ? 'primary-btn' : 'ghost-btn'}}" data-value="center" bindtap="onAlignChange">居中</button>
+        <button class="{{project.layout.align === 'right' ? 'ghost-btn' : 'ghost-btn'}}" data-value="right" bindtap="onAlignChange">右对齐</button>
+      </view>
+    </view>
+
     <view wx:else class="field">
       <text class="label">图片素材</text>
       <view class="input">{{project.content.imageAssetId || '未选择素材'}}</view>
+      <button class="ghost-btn" bindtap="chooseImage">选择图片</button>
       <button class="ghost-btn" bindtap="mockUploadImage">使用示例图片</button>
+    </view>
+
+    <view wx:if="{{project.sourceType === 'image'}}" class="field">
+      <text class="label">图片处理预设</text>
+      <picker mode="selector" range="{{processorOptions}}" range-key="name" value="{{processorIndex}}" bindchange="onProcessorChange">
+        <view class="input">{{processorOptions[processorIndex].name || '选择预设'}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <view class="section stack">
+    <text class="section-title">当前设备</text>
+    <view class="split">
+      <view class="stack" style="gap: 6rpx;">
+        <text class="item-title">{{device.name || '未选择设备'}}</text>
+        <text class="item-meta">{{device.model || '选择设备后项目将关联该设备生成参数'}}</text>
+      </view>
+      <text class="status-pill {{device.onlineStatus === 'online' ? 'status-pill-accent' : ''}}">{{device.onlineStatusLabel || '离线'}}</text>
+    </view>
+    <button class="ghost-btn" bindtap="goDevices">切换设备</button>
+  </view>
+
+  <view class="section stack">
+    <text class="section-title">加工配置</text>
+    <view class="field">
+      <text class="label">机器配置文件</text>
+      <picker mode="selector" range="{{machineProfileOptions}}" range-key="name" value="{{machineProfileIndex}}" bindchange="onMachineProfileChange">
+        <view class="input">{{machineProfileOptions[machineProfileIndex].name || '选择配置'}}</view>
+      </picker>
+    </view>
+    <view class="field">
+      <text class="label">材质预设</text>
+      <picker mode="selector" range="{{materialProfileOptions}}" range-key="name" value="{{materialProfileIndex}}" bindchange="onMaterialProfileChange">
+        <view class="input">{{materialProfileOptions[materialProfileIndex].name || '选择预设'}}</view>
+      </picker>
     </view>
   </view>
 
@@ -36,6 +99,10 @@
         <text class="label">高度(mm)</text>
         <input class="input" type="digit" value="{{project.layout.heightMm}}" data-field="heightMm" bindinput="onLayoutInput" />
       </view>
+      <view class="field">
+        <text class="label">旋转(°)</text>
+        <input class="input" type="digit" value="{{project.layout.rotationDeg}}" data-field="rotationDeg" bindinput="onLayoutInput" />
+      </view>
     </view>
   </view>
 
@@ -49,6 +116,10 @@
       <view class="field">
         <text class="label">功率</text>
         <input class="input" type="digit" value="{{project.processParams.power}}" data-field="power" bindinput="onParamInput" />
+      </view>
+      <view class="field">
+        <text class="label">加工次数</text>
+        <input class="input" type="digit" value="{{project.processParams.passes}}" data-field="passes" bindinput="onParamInput" />
       </view>
     </view>
   </view>

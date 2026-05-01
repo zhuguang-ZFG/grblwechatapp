@@ -38,6 +38,17 @@ Page({
     wx.navigateBack();
   },
 
+  async regeneratePreview() {
+    wx.showLoading({ title: "重新生成中..." });
+    try {
+      const result = await api.createPreview(this.data.projectId);
+      this.setData({ previewId: result.previewId, preview: { status: "processing", metrics: {}, warnings: [] } });
+      await this.refreshPreview();
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
   async submitJob() {
     this.setData({ submitting: true });
     try {

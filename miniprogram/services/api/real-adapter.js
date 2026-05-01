@@ -74,6 +74,22 @@ module.exports = {
     return request({ url: "/devices" });
   },
 
+  listMachineProfiles() {
+    return request({ url: "/machine-profiles" });
+  },
+
+  listMaterialProfiles() {
+    return request({ url: "/material-profiles" });
+  },
+
+  listFonts() {
+    return request({ url: "/fonts" });
+  },
+
+  listImageProcessors() {
+    return request({ url: "/image-processors" });
+  },
+
   bindDevice(bindingCode) {
     return request({
       url: "/devices/bind",
@@ -89,14 +105,18 @@ module.exports = {
     });
   },
 
-  createProject(sourceType) {
+  createProject(sourceType, selectedDeviceId) {
+    const data = {
+      name: sourceType === "image" ? "New image project" : "New text project",
+      sourceType
+    };
+    if (selectedDeviceId) {
+      data.selectedDeviceId = selectedDeviceId;
+    }
     return request({
       url: "/projects",
       method: "POST",
-      data: {
-        name: sourceType === "image" ? "New image project" : "New text project",
-        sourceType
-      }
+      data
     });
   },
 
@@ -144,6 +164,16 @@ module.exports = {
     return request({
       url: `/projects/${projectId}`,
       method: "DELETE"
+    });
+  },
+
+  uploadImage(projectId, tempFilePath) {
+    return request({
+      url: `/projects/${projectId}/assets`,
+      method: "POST",
+      data: {
+        fileName: tempFilePath.split("/").pop() || tempFilePath.split("\\").pop() || "image.png"
+      }
     });
   },
 

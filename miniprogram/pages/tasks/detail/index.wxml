@@ -42,6 +42,7 @@
       <button class="ghost-btn" bindtap="refreshJob">刷新状态</button>
       <button class="secondary-btn" bindtap="viewProject">查看项目</button>
     </view>
+    <text class="muted" style="text-align: center;">上次刷新：{{lastRefreshedAt}}</text>
     <button
       wx:if="{{canCancel}}"
       class="danger-btn"

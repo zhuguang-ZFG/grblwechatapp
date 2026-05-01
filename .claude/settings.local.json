@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node tests/request.test.js)",
+      "Bash(node tests/real-adapter.test.js)",
+      "Bash(node tests/workspace-page.test.js)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(npm test *)",
+      "Bash(node --test)",
+      "Bash(node -e ' *)"
+    ]
+  }
+}

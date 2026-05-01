@@ -45,6 +45,11 @@ Page({
     await this.loadJobs();
   },
 
+  formatTime(isoString) {
+    if (!isoString) return "-";
+    return isoString.replace("T", " ").replace(/\..+/, "").replace("Z", "");
+  },
+
   async loadJobs() {
     const filter = this.data.filterValues[this.data.filterIndex];
     const failureCategory = this.data.failureCategoryValues[this.data.failureCategoryIndex];
@@ -76,7 +81,8 @@ Page({
 
     this.setData({
       jobs,
-      failedCategoryStats
+      failedCategoryStats,
+      lastRefreshedAt: new Date().toISOString()
     });
   },
 

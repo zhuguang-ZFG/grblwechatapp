@@ -56,6 +56,14 @@ function registerProjectsRoutes(app) {
     }
     return result;
   });
+
+  app.post("/api/v1/projects/:id/assets", { preHandler: [app.authenticate] }, async (request, reply) => {
+    const result = app.projectsService.createAsset(request.currentUser.id, request.params.id, request.body);
+    if (!result) {
+      return sendError(reply, 404, "project_not_found", "Project was not found");
+    }
+    return result;
+  });
 }
 
 module.exports = {

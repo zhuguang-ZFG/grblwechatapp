@@ -122,12 +122,14 @@ Page({
   },
 
   async createTextProject() {
-    const result = await api.createProject("text");
+    const selectedDevice = api.getSelectedDevice();
+    const result = await api.createProject("text", selectedDevice && selectedDevice.id);
     wx.navigateTo({ url: `/pages/workspace/editor/index?id=${result.id}` });
   },
 
   async createImageProject() {
-    const result = await api.createProject("image");
+    const selectedDevice = api.getSelectedDevice();
+    const result = await api.createProject("image", selectedDevice && selectedDevice.id);
     wx.navigateTo({ url: `/pages/workspace/editor/index?id=${result.id}` });
   },
 

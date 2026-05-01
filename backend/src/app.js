@@ -17,6 +17,8 @@ const { createGenerationsService } = require("./modules/generations/service");
 const { registerGenerationRoutes } = require("./modules/generations/routes");
 const { createJobsService } = require("./modules/jobs/service");
 const { registerJobRoutes } = require("./modules/jobs/routes");
+const { createProfilesService } = require("./modules/profiles/service");
+const { registerProfilesRoutes } = require("./modules/profiles/routes");
 
 function buildApp(options = {}) {
   const env = Object.assign({}, envDefaults, options.env || {});
@@ -34,6 +36,7 @@ function buildApp(options = {}) {
   app.decorate("generationsService", createGenerationsService(app));
   app.decorate("jobsService", createJobsService(app));
   app.decorate("workerTasks", createWorkerTasks(app));
+  app.decorate("profilesService", createProfilesService(app));
 
   app.get("/health", async () => ({ ok: true }));
   registerAuthRoutes(app);
@@ -42,6 +45,7 @@ function buildApp(options = {}) {
   registerPreviewRoutes(app);
   registerGenerationRoutes(app);
   registerJobRoutes(app);
+  registerProfilesRoutes(app);
 
   app.addHook("onClose", async () => {
     app.workerRuntime.close();

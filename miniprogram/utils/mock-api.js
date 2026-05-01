@@ -57,6 +57,62 @@ const devicesList = {
   ]
 };
 
+const machineProfilesList = {
+  items: [
+    {
+      id: "mp_123",
+      name: "Default ESP32 GRBL",
+      deviceModel: "esp32_grbl",
+      workArea: { widthMm: 400, heightMm: 400 },
+      originMode: "bottom_left",
+      supportsOfflinePrint: true,
+      defaultParams: { speed: 1200, power: 70, lineSpacing: 1.0 }
+    },
+    {
+      id: "mp_124",
+      name: "Precision Mode",
+      deviceModel: "esp32_grbl",
+      workArea: { widthMm: 400, heightMm: 400 },
+      originMode: "center",
+      supportsOfflinePrint: true,
+      defaultParams: { speed: 600, power: 50, lineSpacing: 0.8 }
+    }
+  ]
+};
+
+const materialProfilesList = {
+  items: [
+    {
+      id: "mat_123",
+      name: "Wood - Light Burn",
+      category: "wood",
+      recommendedParams: { speed: 1000, power: 65, passes: 1 },
+      notes: "Good for shallow marking on soft wood."
+    },
+    {
+      id: "mat_124",
+      name: "Wood - Deep Engrave",
+      category: "wood",
+      recommendedParams: { speed: 500, power: 85, passes: 2 },
+      notes: "For deep engraving on hardwood."
+    },
+    {
+      id: "mat_125",
+      name: "Acrylic - Cutting",
+      category: "acrylic",
+      recommendedParams: { speed: 300, power: 90, passes: 3 },
+      notes: "Cut through 3mm acrylic."
+    },
+    {
+      id: "mat_126",
+      name: "Leather - Marking",
+      category: "leather",
+      recommendedParams: { speed: 1500, power: 40, passes: 1 },
+      notes: "Light marking on genuine leather."
+    }
+  ]
+};
+
 const projectDetailText = {
   id: "prj_123",
   name: "Mother's Day plaque",
@@ -66,7 +122,11 @@ const projectDetailText = {
   materialProfileId: "mat_123",
   content: {
     text: "Best Mom",
-    imageAssetId: null
+    imageAssetId: null,
+    fontId: "fnt_001",
+    fontSize: 100,
+    lineGap: 0,
+    processorPresetId: null
   },
   layout: {
     widthMm: 80,
@@ -131,6 +191,82 @@ const jobRunning = {
     {
       status: "running",
       at: "2026-05-01T10:08:00Z"
+    }
+  ]
+};
+
+const fontsList = {
+  items: [
+    {
+      id: "fnt_001",
+      name: "默认黑体",
+      family: "sans-serif",
+      style: "regular",
+      category: "sans-serif",
+      previewUrl: ""
+    },
+    {
+      id: "fnt_002",
+      name: "楷体",
+      family: "KaiTi",
+      style: "regular",
+      category: "serif",
+      previewUrl: ""
+    },
+    {
+      id: "fnt_003",
+      name: "宋体",
+      family: "SimSun",
+      style: "regular",
+      category: "serif",
+      previewUrl: ""
+    },
+    {
+      id: "fnt_004",
+      name: "仿宋",
+      family: "FangSong",
+      style: "regular",
+      category: "serif",
+      previewUrl: ""
+    },
+    {
+      id: "fnt_005",
+      name: "粗体黑体",
+      family: "sans-serif",
+      style: "bold",
+      category: "sans-serif",
+      previewUrl: ""
+    },
+    {
+      id: "fnt_006",
+      name: "圆体",
+      family: "sans-serif",
+      style: "round",
+      category: "sans-serif",
+      previewUrl: ""
+    }
+  ]
+};
+
+const imageProcessorsList = {
+  items: [
+    {
+      id: "ip_001",
+      name: "标准",
+      type: "base",
+      defaultParams: { threshold: 128, noiseReduction: 0 }
+    },
+    {
+      id: "ip_002",
+      name: "边缘检测",
+      type: "edge",
+      defaultParams: { threshold: 80, noiseReduction: 1 }
+    },
+    {
+      id: "ip_003",
+      name: "中心线",
+      type: "centerline",
+      defaultParams: { threshold: 100, noiseReduction: 2 }
     }
   ]
 };
@@ -249,6 +385,26 @@ async function listDevices() {
   return clone(devicesList);
 }
 
+async function listMachineProfiles() {
+  await wait(80);
+  return clone(machineProfilesList);
+}
+
+async function listMaterialProfiles() {
+  await wait(80);
+  return clone(materialProfilesList);
+}
+
+async function listFonts() {
+  await wait(80);
+  return clone(fontsList);
+}
+
+async function listImageProcessors() {
+  await wait(80);
+  return clone(imageProcessorsList);
+}
+
 async function bindDevice(bindingCode) {
   await wait();
   const deviceId = nextId("dev", "project");
@@ -267,7 +423,7 @@ async function bindDevice(bindingCode) {
   };
 }
 
-async function createProject(sourceType) {
+async function createProject(sourceType, selectedDeviceId) {
   await wait();
   const id = nextId("prj", "project");
   const project = clone(projectDetailText);
@@ -276,9 +432,13 @@ async function createProject(sourceType) {
   project.sourceType = sourceType;
   project.content = {
     text: sourceType === "text" ? "" : "",
-    imageAssetId: sourceType === "image" ? "ast_mock_001" : null
+    imageAssetId: sourceType === "image" ? "ast_mock_001" : null,
+    fontId: "fnt_001",
+    fontSize: 100,
+    lineGap: 0,
+    processorPresetId: sourceType === "image" ? "ip_001" : null
   };
-  project.selectedDeviceId = state.selectedDeviceId;
+  project.selectedDeviceId = selectedDeviceId || state.selectedDeviceId;
   project.latestPreviewId = null;
   project.latestGenerationId = null;
   project.updatedAt = "2026-05-01T10:12:00Z";
@@ -349,6 +509,11 @@ async function deleteProject(projectId) {
     id: projectId,
     deleted: true
   };
+}
+
+async function uploadImage(projectId, tempFilePath) {
+  await wait();
+  return { assetId: `ast_${Date.now()}` };
 }
 
 async function createPreview(projectId) {
@@ -520,5 +685,10 @@ module.exports = {
   retryJob,
   cancelJob,
   setSelectedDevice,
-  getSelectedDevice
+  getSelectedDevice,
+  uploadImage,
+  listMachineProfiles,
+  listMaterialProfiles,
+  listFonts,
+  listImageProcessors
 };

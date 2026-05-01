@@ -11,6 +11,8 @@ function toProjectView(row) {
     sourceType: row.source_type,
     status: row.status,
     selectedDeviceId: row.selected_device_id || "",
+    machineProfileId: row.machine_profile_id || "",
+    materialProfileId: row.material_profile_id || "",
     content: JSON.parse(row.content_json),
     layout: JSON.parse(row.layout_json),
     processParams: JSON.parse(row.process_params_json),
@@ -29,9 +31,10 @@ function createProjectsService(app) {
     db.prepare(`
       INSERT INTO projects (
         id, owner_user_id, name, source_type, status, selected_device_id,
+        machine_profile_id, material_profile_id,
         content_json, layout_json, process_params_json, latest_preview_id,
         latest_generation_id, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, '', '', ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', '', ?, ?)
     `).run(
       id,
       userId,
@@ -39,9 +42,11 @@ function createProjectsService(app) {
       payload.sourceType,
       "draft",
       payload.selectedDeviceId || "",
-      JSON.stringify(payload.content || { text: "", imageAssetId: null }),
-      JSON.stringify(payload.layout || { widthMm: 80, heightMm: 50 }),
-      JSON.stringify(payload.processParams || { speed: 1000, power: 65 }),
+      payload.machineProfileId || "",
+      payload.materialProfileId || "",
+      JSON.stringify(payload.content || { text: "", imageAssetId: null, fontId: "fnt_001", fontSize: 100, lineGap: 0, processorPresetId: null }),
+      JSON.stringify(payload.layout || { widthMm: 80, heightMm: 50, rotationDeg: 0, align: "center" }),
+      JSON.stringify(payload.processParams || { speed: 1000, power: 65, passes: 1, lineSpacing: 1.2 }),
       createdAt,
       createdAt
     );
@@ -84,7 +89,9 @@ function createProjectsService(app) {
     const next = {
       name: payload.name || existing.name,
       sourceType: payload.sourceType || existing.sourceType,
-      selectedDeviceId: payload.selectedDeviceId || existing.selectedDeviceId,
+      selectedDeviceId: payload.selectedDeviceId !== undefined ? payload.selectedDeviceId : existing.selectedDeviceId,
+      machineProfileId: payload.machineProfileId !== undefined ? payload.machineProfileId : existing.machineProfileId,
+      materialProfileId: payload.materialProfileId !== undefined ? payload.materialProfileId : existing.materialProfileId,
       content: payload.content || existing.content,
       layout: payload.layout || existing.layout,
       processParams: payload.processParams || existing.processParams
@@ -92,12 +99,15 @@ function createProjectsService(app) {
 
     db.prepare(`
       UPDATE projects
-      SET name = ?, source_type = ?, selected_device_id = ?, content_json = ?, layout_json = ?, process_params_json = ?, updated_at = ?
+      SET name = ?, source_type = ?, selected_device_id = ?, machine_profile_id = ?, material_profile_id = ?,
+          content_json = ?, layout_json = ?, process_params_json = ?, updated_at = ?
       WHERE id = ? AND owner_user_id = ?
     `).run(
       next.name,
       next.sourceType,
       next.selectedDeviceId,
+      next.machineProfileId,
+      next.materialProfileId,
       JSON.stringify(next.content),
       JSON.stringify(next.layout),
       JSON.stringify(next.processParams),
@@ -118,6 +128,8 @@ function createProjectsService(app) {
       name: `${existing.name} Copy`,
       sourceType: existing.sourceType,
       selectedDeviceId: existing.selectedDeviceId,
+      machineProfileId: existing.machineProfileId,
+      materialProfileId: existing.materialProfileId,
       content: existing.content,
       layout: existing.layout,
       processParams: existing.processParams
@@ -160,6 +172,15 @@ function createProjectsService(app) {
     return { deleted: true };
   }
 
+  function createAsset(userId, projectId, payload) {
+    const project = getProject(userId, projectId);
+    if (!project) {
+      return null;
+    }
+    const assetId = `ast_${crypto.randomUUID().slice(0, 8)}`;
+    return { assetId };
+  }
+
   return {
     createProject,
     listProjects,
@@ -168,7 +189,8 @@ function createProjectsService(app) {
     duplicateProject,
     archiveProject,
     restoreProject,
-    deleteProject
+    deleteProject,
+    createAsset
   };
 }
 

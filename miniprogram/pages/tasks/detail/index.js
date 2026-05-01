@@ -120,6 +120,7 @@ Page({
       job,
       canCancel: ["queued", "dispatching", "running"].includes(job.status),
       canRetry,
+      lastRefreshedAt: new Date().toISOString(),
       retryHint: job.status === "failed" && job.failure && !job.failure.retryable
         ? "当前错误不支持直接重试，请先调整项目参数后重新提交任务。"
         : ""

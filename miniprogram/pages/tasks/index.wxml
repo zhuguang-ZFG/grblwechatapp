@@ -19,6 +19,10 @@
         <text class="item-meta">{{item.count}}</text>
       </view>
     </view>
+    <view class="split">
+      <text class="item-meta">上次刷新：{{formatTime(lastRefreshedAt)}}</text>
+      <button size="mini" class="ghost-btn" bindtap="loadJobs">刷新</button>
+    </view>
   </view>
 
   <view wx:if="{{jobs.length}}" class="card-list">

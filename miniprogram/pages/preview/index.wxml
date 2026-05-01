@@ -50,6 +50,7 @@
     <view class="row">
       <button class="ghost-btn" bindtap="backToEditor">返回编辑</button>
       <button class="secondary-btn" bindtap="refreshPreview">刷新预览</button>
+      <button class="secondary-btn" bindtap="regeneratePreview">重新生成</button>
     </view>
     <button class="primary-btn" loading="{{submitting}}" disabled="{{preview.status !== 'ready'}}" bindtap="submitJob">提交任务</button>
   </view>
