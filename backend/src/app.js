@@ -42,9 +42,13 @@ function buildApp(options = {}) {
   const env = Object.assign({}, envDefaults, options.env || {});
   const app = Fastify({ logger: false });
 
-  app.decorate("logEvent", (event, payload = {}) => {
+  app.decorate("logEvent", (event, payload = {}, options = {}) => {
+    const component = options.component || "app";
+    const level = options.level || "info";
     const entry = {
       at: new Date().toISOString(),
+      level,
+      component,
       event,
       ...payload
     };

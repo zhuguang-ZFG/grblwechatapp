@@ -58,6 +58,8 @@ function createJobsService(app) {
       generationId: payload.generationId,
       deviceId: payload.deviceId,
       priority
+    }, {
+      component: "jobs"
     });
 
     db.prepare("INSERT INTO job_events (id, job_id, status, at) VALUES (?, ?, ?, ?)")
@@ -163,6 +165,8 @@ function createJobsService(app) {
       fromStatus: row.status,
       toStatus: newStatus,
       progress
+    }, {
+      component: "jobs"
     });
     db.prepare("INSERT INTO job_events (id, job_id, status, at) VALUES (?, ?, ?, ?)")
       .run(`${jobId}_${newStatus}_${Date.now()}`, jobId, newStatus, now());

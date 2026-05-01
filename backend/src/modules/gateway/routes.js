@@ -6,6 +6,9 @@ function registerGatewayRoutes(app) {
       app.logEvent("gateway_auth_rejected", {
         reason: "missing_device_auth",
         deviceId: deviceId || ""
+      }, {
+        component: "gateway",
+        level: "warn"
       });
       sendError(reply, 400, "missing_device_auth", "deviceId and deviceToken are required");
       return false;
@@ -14,6 +17,9 @@ function registerGatewayRoutes(app) {
       app.logEvent("gateway_auth_rejected", {
         reason: "invalid_device_auth",
         deviceId
+      }, {
+        component: "gateway",
+        level: "warn"
       });
       sendError(reply, 401, "invalid_device_auth", "Device authentication failed");
       return false;
@@ -33,6 +39,8 @@ function registerGatewayRoutes(app) {
       deviceId,
       hasPendingJob: Boolean(pending),
       pendingJobId: pending ? pending.jobId : ""
+    }, {
+      component: "gateway"
     });
     return { status: "ok", hasPendingJob: !!pending, pendingJob: pending || undefined };
   });
@@ -49,6 +57,8 @@ function registerGatewayRoutes(app) {
       deviceId,
       hasPendingJob: Boolean(job),
       pendingJobId: job ? job.jobId : ""
+    }, {
+      component: "gateway"
     });
     return { pending: !!job, job };
   });
@@ -69,6 +79,8 @@ function registerGatewayRoutes(app) {
       status: status || "running",
       percent: percent || 0,
       currentStep: currentStep || ""
+    }, {
+      component: "gateway"
     });
     return { status: "ok" };
   });

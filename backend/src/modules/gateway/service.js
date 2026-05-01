@@ -51,6 +51,9 @@ function createGatewayService(app) {
       deviceId,
       jobId: lease.jobId,
       leaseExpiresAt: new Date(lease.leaseExpiresAt).toISOString()
+    }, {
+      component: "gateway",
+      level: "warn"
     });
   }
 
@@ -85,6 +88,8 @@ function createGatewayService(app) {
         jobId,
         deviceId,
         queueSize: queue.length
+    }, {
+      component: "gateway"
       });
 
       return { mode: "gateway", jobId };
@@ -104,6 +109,8 @@ function createGatewayService(app) {
       traceId: job.trace_id || "",
       jobId,
       deviceId
+    }, {
+      component: "gateway"
     });
 
     return { mode: "simulation", jobId };
@@ -131,6 +138,8 @@ function createGatewayService(app) {
       deviceId,
       jobId,
       leaseMs: dispatchLeaseMs
+    }, {
+      component: "gateway"
     });
     return getPendingJobPayload(jobId);
   }
@@ -145,6 +154,8 @@ function createGatewayService(app) {
       app.logEvent("gateway_job_acknowledged", {
         deviceId,
         jobId
+      }, {
+        component: "gateway"
       });
       return true;
     }
@@ -185,6 +196,8 @@ function createGatewayService(app) {
       status,
       percent,
       currentStep
+    }, {
+      component: "gateway"
     });
 
     if (status === JOB.COMPLETED || status === JOB.FAILED) {
@@ -215,6 +228,9 @@ function createGatewayService(app) {
     `).run("offline", now(), deviceId);
     app.logEvent("gateway_device_offline", {
       deviceId
+    }, {
+      component: "gateway",
+      level: "warn"
     });
   }
 
