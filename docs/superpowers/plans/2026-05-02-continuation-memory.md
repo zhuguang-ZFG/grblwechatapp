@@ -80,8 +80,8 @@ node tests/failure-code-doc-sync.test.js
 ### P0 Next
 
 1. Extend requestId to more async/simulation-path logs where request context is currently empty.
-2. Add request-level correlation to non-gateway modules (projects/previews/generations routes).
-3. Add one compact smoke script for gateway ack simulation using deviceToken.
+2. Add one compact smoke script for gateway ack simulation using deviceToken.
+3. Add request-level log correlation for templates/profiles/dashboard/search routes.
 
 ### P1 Next
 
