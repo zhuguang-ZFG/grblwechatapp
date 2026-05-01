@@ -51,6 +51,7 @@ function createJobsService(app) {
     );
 
     app.logEvent("job_created", {
+      requestId: options.requestId || "",
       traceId,
       jobId,
       userId,
@@ -216,7 +217,8 @@ function createJobsService(app) {
       generationId: row.generation_id,
       deviceId: row.device_id
     }, {
-      traceId: row.trace_id || undefined
+      traceId: row.trace_id || undefined,
+      requestId: ""
     });
   }
 

@@ -57,7 +57,7 @@ function createGatewayService(app) {
     });
   }
 
-  function dispatchJob(jobId) {
+  function dispatchJob(jobId, options = {}) {
     const job = db.prepare(`
       SELECT jobs.*, projects.process_params_json AS pp_json, projects.content_json, projects.layout_json
       FROM jobs
@@ -84,12 +84,13 @@ function createGatewayService(app) {
       `).run(JOB.DISPATCHING, JSON.stringify({ percent: 5, currentStep: "dispatched" }), now(), jobId);
 
       app.logEvent("gateway_job_enqueued", {
+        requestId: options.requestId || "",
         traceId: job.trace_id || "",
         jobId,
         deviceId,
         queueSize: queue.length
-    }, {
-      component: "gateway"
+      }, {
+        component: "gateway"
       });
 
       return { mode: "gateway", jobId };
@@ -106,6 +107,7 @@ function createGatewayService(app) {
     });
 
     app.logEvent("gateway_job_dispatched_simulation", {
+      requestId: options.requestId || "",
       traceId: job.trace_id || "",
       jobId,
       deviceId
@@ -116,7 +118,7 @@ function createGatewayService(app) {
     return { mode: "simulation", jobId };
   }
 
-  function getPendingJob(deviceId) {
+  function getPendingJob(deviceId, options = {}) {
     releaseExpiredLease(deviceId);
 
     const activeLease = inFlightJobs.get(deviceId);
@@ -135,6 +137,7 @@ function createGatewayService(app) {
       leaseExpiresAt: Date.now() + dispatchLeaseMs
     });
     app.logEvent("gateway_job_leased", {
+      requestId: options.requestId || "",
       deviceId,
       jobId,
       leaseMs: dispatchLeaseMs
@@ -162,13 +165,24 @@ function createGatewayService(app) {
     return false;
   }
 
-  function reportProgress(deviceId, jobId, status, percent, currentStep) {
+  function reportProgress(deviceId, jobId, status, percent, currentStep, options = {}) {
     // Validate device-reported status against current job state
     const job = db.prepare("SELECT * FROM jobs WHERE id = ?").get(jobId);
     if (!job) return;
     try {
       assertTransition(JOB, job.status, status, "job");
     } catch {
+      app.logEvent("gateway_progress_rejected_transition", {
+        requestId: options.requestId || "",
+        traceId: job.trace_id || "",
+        deviceId,
+        jobId,
+        fromStatus: job.status,
+        toStatus: status
+      }, {
+        component: "gateway",
+        level: "warn"
+      });
       return; // Silently reject invalid transitions from device
     }
 
@@ -190,6 +204,7 @@ function createGatewayService(app) {
       .run(`${jobId}_${status}_${Date.now()}`, jobId, status, now());
 
     app.logEvent("gateway_job_progress_applied", {
+      requestId: options.requestId || "",
       traceId: job.trace_id || "",
       deviceId,
       jobId,

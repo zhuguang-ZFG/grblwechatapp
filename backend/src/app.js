@@ -1,4 +1,5 @@
 const Fastify = require("fastify");
+const crypto = require("crypto");
 const path = require("path");
 const envDefaults = require("./config/env");
 const { createDatabase } = require("./shared/db");
@@ -53,6 +54,15 @@ function buildApp(options = {}) {
       ...payload
     };
     console.log(JSON.stringify(entry));
+  });
+
+  app.addHook("onRequest", async (request, reply) => {
+    const incomingRequestId = request.headers["x-request-id"];
+    const requestId = (typeof incomingRequestId === "string" && incomingRequestId.trim())
+      ? incomingRequestId.trim()
+      : `req_${crypto.randomUUID()}`;
+    request.requestId = requestId;
+    reply.header("x-request-id", requestId);
   });
 
   app.decorate("env", env);

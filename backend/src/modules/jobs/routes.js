@@ -4,7 +4,8 @@ function registerJobRoutes(app) {
   app.post("/api/v1/jobs", { preHandler: [app.authenticate] }, async (request, reply) => {
     const requestTraceId = request.headers["x-trace-id"] || "";
     const job = app.jobsService.createJob(request.currentUser.id, request.body, {
-      traceId: requestTraceId || undefined
+      traceId: requestTraceId || undefined,
+      requestId: request.requestId
     });
     if (!job) {
       return sendError(reply, 404, "job_input_not_found", "Project, generation, or device was not found");

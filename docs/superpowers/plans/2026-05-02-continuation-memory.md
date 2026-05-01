@@ -31,6 +31,7 @@
 - Device bind now issues and returns `deviceToken`.
 - Gateway pending dispatch now has lease semantics to avoid stuck in-flight jobs.
 - Lease expiry path is explicit and recoverable.
+- Gateway progress payload now has strict validation and explicit reject path.
 
 ### 2.3 Device Chain
 
@@ -41,6 +42,7 @@
 ### 2.4 Observability
 
 - Structured logs include `at`, `level`, `component`, `event`.
+- Request-level `requestId` middleware is active and emitted in route-side logs.
 - Job creation supports trace propagation (`x-trace-id`) and always emits `traceId`.
 - Event dictionary doc exists:
   - `docs/superpowers/specs/2026-05-02-observability-events-v0.md`
@@ -77,9 +79,9 @@ node tests/failure-code-doc-sync.test.js
 
 ### P0 Next
 
-1. Add request-level `requestId` middleware and include it in all `logEvent` payloads.
-2. Add gateway/job error-level logging for rejected status transitions and malformed progress payloads.
-3. Add one end-to-end test for gateway ack path (`pending -> running -> completed`) with token auth.
+1. Extend requestId to more async/simulation-path logs where request context is currently empty.
+2. Add request-level correlation to non-gateway modules (projects/previews/generations routes).
+3. Add one compact smoke script for gateway ack simulation using deviceToken.
 
 ### P1 Next
 

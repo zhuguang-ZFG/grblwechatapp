@@ -1,6 +1,6 @@
 # KXApp Observability Events v0
 
-**Purpose:** Define a stable structured-log event dictionary for backend gateway/job execution so runtime diagnosis can rely on consistent `event`, `component`, `level`, and core identifiers.
+**Purpose:** Define a stable structured-log event dictionary for backend gateway/job execution so runtime diagnosis can rely on consistent `event`, `component`, `level`, `requestId`, and core identifiers.
 
 ## Scope
 
@@ -24,6 +24,7 @@ This v0 does not yet cover:
   "at": "2026-05-02T02:00:00.000Z",
   "level": "info",
   "component": "gateway",
+  "requestId": "req_...",
   "event": "gateway_job_enqueued",
   "traceId": "trace_...",
   "...": "event-specific fields"
@@ -35,6 +36,7 @@ Field semantics:
 - `at`: ISO timestamp
 - `level`: `info` or `warn` in current v0
 - `component`: logical backend module (`jobs`, `gateway`, `app`)
+- `requestId`: request-scope correlation id from middleware (`x-request-id` propagated or generated)
 - `event`: stable machine-readable event name
 - `traceId`: cross-step correlation id (when available)
 
@@ -47,7 +49,9 @@ Field semantics:
 | `gateway_auth_rejected` | `gateway` | `warn` | Missing/invalid device auth | `reason`, `deviceId` |
 | `gateway_heartbeat` | `gateway` | `info` | Device heartbeat accepted | `deviceId`, `hasPendingJob`, `pendingJobId` |
 | `gateway_poll_pending` | `gateway` | `info` | Device polls pending job queue | `deviceId`, `hasPendingJob`, `pendingJobId` |
-| `gateway_progress_reported` | `gateway` | `info` | Device submits progress payload | `deviceId`, `jobId`, `status`, `percent`, `currentStep` |
+| `gateway_progress_reported` | `gateway` | `info` | Device submits progress payload accepted by route validation | `requestId`, `deviceId`, `jobId`, `status`, `percent`, `currentStep` |
+| `gateway_progress_rejected` | `gateway` | `warn` | Route rejects malformed progress payload | `requestId`, `deviceId`, `jobId`, `reason` |
+| `gateway_progress_rejected_transition` | `gateway` | `warn` | Service rejects invalid state transition in progress report | `requestId`, `traceId`, `deviceId`, `jobId`, `fromStatus`, `toStatus` |
 | `gateway_job_enqueued` | `gateway` | `info` | Job queued to gateway pending queue | `traceId`, `jobId`, `deviceId`, `queueSize` |
 | `gateway_job_leased` | `gateway` | `info` | Pending job leased to polling device | `deviceId`, `jobId`, `leaseMs` |
 | `gateway_dispatch_lease_expired` | `gateway` | `warn` | Lease expired before ACK/progress | `deviceId`, `jobId`, `leaseExpiresAt` |
@@ -58,10 +62,11 @@ Field semantics:
 
 ## Correlation Rules
 
-1. Every newly created job gets a `traceId`.
-2. Client can pass `x-trace-id` when creating job; server reuses it.
-3. Gateway and job events should include `traceId` whenever related job row is available.
-4. `jobId` is required for all job-execution-path events except auth/heartbeat-only events.
+1. Every request gets a `requestId` from middleware (`x-request-id` passthrough or generated `req_<uuid>`).
+2. Every newly created job gets a `traceId`.
+3. Client can pass `x-trace-id` when creating job; server reuses it.
+4. Gateway and job events should include `traceId` whenever related job row is available.
+5. `jobId` is required for all job-execution-path events except auth/heartbeat-only events.
 
 ## Evolution Rules
 

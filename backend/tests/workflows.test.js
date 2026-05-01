@@ -777,3 +777,138 @@ test("gateway pending job lease expires and allows re-poll", async () => {
 
   await app.close();
 });
+
+test("gateway progress rejects malformed payload", async () => {
+  const { app } = createTestApp();
+  await app.ready();
+
+  const device = app.db.prepare("SELECT id, device_token FROM devices WHERE id = ?").get("dev_123");
+  const response = await app.inject({
+    method: "POST",
+    url: "/api/v1/gateway/jobs/progress",
+    payload: {
+      deviceId: device.id,
+      deviceToken: device.device_token,
+      jobId: "job_xxx",
+      status: "running",
+      percent: 101,
+      currentStep: "running"
+    }
+  });
+
+  assert.equal(response.statusCode, 400);
+  assert.equal(response.json().code, "invalid_progress_payload");
+
+  await app.close();
+});
+
+test("gateway ack flow transitions pending job to completed", async () => {
+  const { app } = createTestApp();
+  await app.ready();
+  const token = await registerAndToken(app);
+  const projectId = await createProject(app, token);
+
+  const previewCreate = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectId}/preview`,
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      forceRegenerate: true
+    }
+  });
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  const generationCreate = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectId}/generate`,
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      previewId: previewCreate.json().previewId
+    }
+  });
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  const device = app.db.prepare("SELECT id, device_token FROM devices WHERE id = ?").get("dev_123");
+  await app.inject({
+    method: "POST",
+    url: "/api/v1/gateway/heartbeat",
+    payload: {
+      deviceId: device.id,
+      deviceToken: device.device_token
+    }
+  });
+
+  const jobCreate = await app.inject({
+    method: "POST",
+    url: "/api/v1/jobs",
+    headers: {
+      authorization: `Bearer ${token}`
+    },
+    payload: {
+      projectId,
+      generationId: generationCreate.json().generationId,
+      deviceId: "dev_123",
+      executionMode: "offline_file"
+    }
+  });
+  const jobId = jobCreate.json().jobId;
+
+  const pending = await app.inject({
+    method: "GET",
+    url: `/api/v1/gateway/jobs/pending?deviceId=${device.id}&deviceToken=${device.device_token}`
+  });
+  assert.equal(pending.statusCode, 200);
+  assert.equal(pending.json().pending, true);
+  assert.equal(pending.json().job.jobId, jobId);
+
+  const running = await app.inject({
+    method: "POST",
+    url: "/api/v1/gateway/jobs/progress",
+    payload: {
+      deviceId: device.id,
+      deviceToken: device.device_token,
+      jobId,
+      status: "running",
+      percent: 45,
+      currentStep: "streaming"
+    }
+  });
+  assert.equal(running.statusCode, 200);
+
+  const completed = await app.inject({
+    method: "POST",
+    url: "/api/v1/gateway/jobs/progress",
+    payload: {
+      deviceId: device.id,
+      deviceToken: device.device_token,
+      jobId,
+      status: "completed",
+      percent: 100,
+      currentStep: "running"
+    }
+  });
+  assert.equal(completed.statusCode, 200);
+
+  const jobDetail = await app.inject({
+    method: "GET",
+    url: `/api/v1/jobs/${jobId}`,
+    headers: {
+      authorization: `Bearer ${token}`
+    }
+  });
+  assert.equal(jobDetail.statusCode, 200);
+  assert.equal(jobDetail.json().status, "completed");
+
+  const pendingAfterAck = await app.inject({
+    method: "GET",
+    url: `/api/v1/gateway/jobs/pending?deviceId=${device.id}&deviceToken=${device.device_token}`
+  });
+  assert.equal(pendingAfterAck.statusCode, 200);
+  assert.equal(pendingAfterAck.json().pending, false);
+
+  await app.close();
+});
