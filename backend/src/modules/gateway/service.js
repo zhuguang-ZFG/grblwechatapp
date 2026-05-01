@@ -47,6 +47,11 @@ function createGatewayService(app) {
       return;
     }
     inFlightJobs.delete(deviceId);
+    app.logEvent("gateway_dispatch_lease_expired", {
+      deviceId,
+      jobId: lease.jobId,
+      leaseExpiresAt: new Date(lease.leaseExpiresAt).toISOString()
+    });
   }
 
   function dispatchJob(jobId) {
@@ -75,6 +80,13 @@ function createGatewayService(app) {
         WHERE id = ?
       `).run(JOB.DISPATCHING, JSON.stringify({ percent: 5, currentStep: "dispatched" }), now(), jobId);
 
+      app.logEvent("gateway_job_enqueued", {
+        traceId: job.trace_id || "",
+        jobId,
+        deviceId,
+        queueSize: queue.length
+      });
+
       return { mode: "gateway", jobId };
     }
 
@@ -86,6 +98,12 @@ function createGatewayService(app) {
 
     app.workerRuntime.enqueue(async () => {
       await app.workerTasks.runJob(jobId);
+    });
+
+    app.logEvent("gateway_job_dispatched_simulation", {
+      traceId: job.trace_id || "",
+      jobId,
+      deviceId
     });
 
     return { mode: "simulation", jobId };
@@ -109,6 +127,11 @@ function createGatewayService(app) {
       jobId,
       leaseExpiresAt: Date.now() + dispatchLeaseMs
     });
+    app.logEvent("gateway_job_leased", {
+      deviceId,
+      jobId,
+      leaseMs: dispatchLeaseMs
+    });
     return getPendingJobPayload(jobId);
   }
 
@@ -119,6 +142,10 @@ function createGatewayService(app) {
       queue.shift();
       inFlightJobs.delete(deviceId);
       if (queue.length === 0) pendingJobs.delete(deviceId);
+      app.logEvent("gateway_job_acknowledged", {
+        deviceId,
+        jobId
+      });
       return true;
     }
     return false;
@@ -151,6 +178,15 @@ function createGatewayService(app) {
     db.prepare("INSERT INTO job_events (id, job_id, status, at) VALUES (?, ?, ?, ?)")
       .run(`${jobId}_${status}_${Date.now()}`, jobId, status, now());
 
+    app.logEvent("gateway_job_progress_applied", {
+      traceId: job.trace_id || "",
+      deviceId,
+      jobId,
+      status,
+      percent,
+      currentStep
+    });
+
     if (status === JOB.COMPLETED || status === JOB.FAILED) {
       const s = sessions.get(deviceId);
       if (s) s.currentJobId = null;
@@ -177,6 +213,9 @@ function createGatewayService(app) {
       UPDATE devices SET online_status = ?, last_seen_at = ?
       WHERE id = ?
     `).run("offline", now(), deviceId);
+    app.logEvent("gateway_device_offline", {
+      deviceId
+    });
   }
 
   function getDeviceStatus(deviceId) {

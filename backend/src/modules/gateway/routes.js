@@ -3,10 +3,18 @@ const { sendError } = require("../../shared/http/error-response");
 function registerGatewayRoutes(app) {
   function requireDeviceAuth(deviceId, deviceToken, reply) {
     if (!deviceId || !deviceToken) {
+      app.logEvent("gateway_auth_rejected", {
+        reason: "missing_device_auth",
+        deviceId: deviceId || ""
+      });
       sendError(reply, 400, "missing_device_auth", "deviceId and deviceToken are required");
       return false;
     }
     if (!app.gatewayService.verifyDeviceAuth(deviceId, deviceToken)) {
+      app.logEvent("gateway_auth_rejected", {
+        reason: "invalid_device_auth",
+        deviceId
+      });
       sendError(reply, 401, "invalid_device_auth", "Device authentication failed");
       return false;
     }
@@ -21,6 +29,11 @@ function registerGatewayRoutes(app) {
     }
     app.gatewayService.handleHeartbeat(deviceId);
     const pending = app.gatewayService.getPendingJob(deviceId);
+    app.logEvent("gateway_heartbeat", {
+      deviceId,
+      hasPendingJob: Boolean(pending),
+      pendingJobId: pending ? pending.jobId : ""
+    });
     return { status: "ok", hasPendingJob: !!pending, pendingJob: pending || undefined };
   });
 
@@ -32,6 +45,11 @@ function registerGatewayRoutes(app) {
       return;
     }
     const job = app.gatewayService.getPendingJob(deviceId);
+    app.logEvent("gateway_poll_pending", {
+      deviceId,
+      hasPendingJob: Boolean(job),
+      pendingJobId: job ? job.jobId : ""
+    });
     return { pending: !!job, job };
   });
 
@@ -45,6 +63,13 @@ function registerGatewayRoutes(app) {
       return sendError(reply, 400, "missing_job_id", "jobId is required");
     }
     app.gatewayService.reportProgress(deviceId, jobId, status || "running", percent || 0, currentStep || "");
+    app.logEvent("gateway_progress_reported", {
+      deviceId,
+      jobId,
+      status: status || "running",
+      percent: percent || 0,
+      currentStep: currentStep || ""
+    });
     return { status: "ok" };
   });
 

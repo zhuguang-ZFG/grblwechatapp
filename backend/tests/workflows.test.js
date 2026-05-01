@@ -118,6 +118,9 @@ test("preview generation and job flow reach ready/completed states", async () =>
     }
   });
 
+  assert.equal(typeof jobCreate.json().traceId, "string");
+  assert.equal(jobCreate.json().traceId.startsWith("trace_"), true);
+
   const jobId = jobCreate.json().jobId;
   await new Promise((resolve) => setTimeout(resolve, 180));
 
@@ -753,6 +756,14 @@ test("gateway pending job lease expires and allows re-poll", async () => {
   assert.equal(firstPoll.statusCode, 200);
   assert.equal(firstPoll.json().pending, true);
   assert.equal(firstPoll.json().job.jobId, jobId);
+
+  const immediateSecondPoll = await app.inject({
+    method: "GET",
+    url: `/api/v1/gateway/jobs/pending?deviceId=${device.id}&deviceToken=${device.device_token}`
+  });
+  assert.equal(immediateSecondPoll.statusCode, 200);
+  assert.equal(immediateSecondPoll.json().pending, true);
+  assert.equal(immediateSecondPoll.json().job.jobId, jobId);
 
   await new Promise((resolve) => setTimeout(resolve, 60));
 

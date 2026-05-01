@@ -6,6 +6,14 @@ function ensureDeviceTokenColumn(db) {
   }
 }
 
+function ensureJobTraceIdColumn(db) {
+  const columns = db.prepare("PRAGMA table_info(jobs)").all();
+  const hasTraceId = columns.some((column) => column.name === "trace_id");
+  if (!hasTraceId) {
+    db.exec("ALTER TABLE jobs ADD COLUMN trace_id TEXT DEFAULT '';");
+  }
+}
+
 function applySchema(db) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
@@ -117,6 +125,7 @@ function applySchema(db) {
       project_id TEXT NOT NULL,
       generation_id TEXT NOT NULL,
       device_id TEXT NOT NULL,
+      trace_id TEXT DEFAULT '',
       status TEXT NOT NULL,
       priority TEXT DEFAULT 'normal',
       progress_json TEXT NOT NULL,
@@ -168,6 +177,7 @@ function applySchema(db) {
     );
   `);
   ensureDeviceTokenColumn(db);
+  ensureJobTraceIdColumn(db);
 }
 
 module.exports = {

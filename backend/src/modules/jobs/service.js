@@ -21,7 +21,7 @@ function createJobsService(app) {
     `).get(jobId, userId);
   }
 
-  function createJob(userId, payload) {
+  function createJob(userId, payload, options = {}) {
     const project = db.prepare("SELECT * FROM projects WHERE id = ? AND owner_user_id = ?").get(payload.projectId, userId);
     const generation = db.prepare("SELECT * FROM generations WHERE id = ? AND project_id = ?").get(payload.generationId, payload.projectId);
     const device = db.prepare("SELECT * FROM devices WHERE id = ? AND (owner_user_id = ? OR owner_user_id = '')").get(payload.deviceId, userId);
@@ -31,12 +31,34 @@ function createJobsService(app) {
     }
 
     const jobId = `job_${crypto.randomUUID().slice(0, 8)}`;
+    const traceId = options.traceId || `trace_${crypto.randomUUID()}`;
     const createdAt = now();
     const priority = ["high", "normal", "low"].includes(payload.priority) ? payload.priority : "normal";
     db.prepare(`
-      INSERT INTO jobs (id, project_id, generation_id, device_id, status, priority, progress_json, failure_json, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, '', ?, ?)
-    `).run(jobId, payload.projectId, payload.generationId, payload.deviceId, JOB.QUEUED, priority, JSON.stringify({ percent: 0, currentStep: JOB.QUEUED }), createdAt, createdAt);
+      INSERT INTO jobs (id, project_id, generation_id, device_id, trace_id, status, priority, progress_json, failure_json, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, '', ?, ?)
+    `).run(
+      jobId,
+      payload.projectId,
+      payload.generationId,
+      payload.deviceId,
+      traceId,
+      JOB.QUEUED,
+      priority,
+      JSON.stringify({ percent: 0, currentStep: JOB.QUEUED }),
+      createdAt,
+      createdAt
+    );
+
+    app.logEvent("job_created", {
+      traceId,
+      jobId,
+      userId,
+      projectId: payload.projectId,
+      generationId: payload.generationId,
+      deviceId: payload.deviceId,
+      priority
+    });
 
     db.prepare("INSERT INTO job_events (id, job_id, status, at) VALUES (?, ?, ?, ?)")
       .run(`${jobId}_${JOB.QUEUED}`, jobId, JOB.QUEUED, createdAt);
@@ -45,7 +67,8 @@ function createJobsService(app) {
 
     return {
       jobId,
-      status: JOB.QUEUED
+      status: JOB.QUEUED,
+      traceId
     };
   }
 
@@ -78,6 +101,7 @@ function createJobsService(app) {
         id: row.id,
         projectId: row.project_id,
         deviceId: row.device_id,
+        traceId: row.trace_id || "",
         status: row.status,
         priority: row.priority || "normal",
         progress: JSON.parse(row.progress_json),
@@ -118,6 +142,7 @@ function createJobsService(app) {
       projectId: row.project_id,
       generationId: row.generation_id,
       deviceId: row.device_id,
+      traceId: row.trace_id || "",
       status: row.status,
       priority: row.priority || "normal",
       progress: JSON.parse(row.progress_json),
@@ -132,6 +157,13 @@ function createJobsService(app) {
     assertTransition(JOB, row.status, newStatus, "job");
     db.prepare("UPDATE jobs SET status = ?, progress_json = ?, updated_at = ? WHERE id = ?")
       .run(newStatus, JSON.stringify(progress), now(), jobId);
+    app.logEvent("job_status_updated", {
+      traceId: row.trace_id || "",
+      jobId,
+      fromStatus: row.status,
+      toStatus: newStatus,
+      progress
+    });
     db.prepare("INSERT INTO job_events (id, job_id, status, at) VALUES (?, ?, ?, ?)")
       .run(`${jobId}_${newStatus}_${Date.now()}`, jobId, newStatus, now());
   }
@@ -179,6 +211,8 @@ function createJobsService(app) {
       projectId: row.project_id,
       generationId: row.generation_id,
       deviceId: row.device_id
+    }, {
+      traceId: row.trace_id || undefined
     });
   }
 

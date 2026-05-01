@@ -42,6 +42,15 @@ function buildApp(options = {}) {
   const env = Object.assign({}, envDefaults, options.env || {});
   const app = Fastify({ logger: false });
 
+  app.decorate("logEvent", (event, payload = {}) => {
+    const entry = {
+      at: new Date().toISOString(),
+      event,
+      ...payload
+    };
+    console.log(JSON.stringify(entry));
+  });
+
   app.decorate("env", env);
   app.decorate("db", createDatabase(env.databaseFile));
   app.decorate("artifacts", createArtifactStore(env.storageDir));
