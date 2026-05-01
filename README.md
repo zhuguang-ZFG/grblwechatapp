@@ -5,6 +5,7 @@ KXApp 微信小程序迁移项目（`wechatapp`）：
 - 小程序端：`miniprogram/`
 - 后端服务：`backend/`（Fastify + SQLite）
 - 契约与规划文档：`docs/superpowers/`
+- 观测事件字典：`docs/superpowers/specs/2026-05-02-observability-events-v0.md`
 
 ## 本地开发
 
