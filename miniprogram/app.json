@@ -12,6 +12,7 @@
     "pages/devices/index",
     "pages/devices/bind/index",
     "pages/profile/index",
+    "pages/help/index",
     "pages/profiles/material/index",
     "pages/profiles/machine/index",
     "pages/profiles/index",

@@ -1,0 +1,21 @@
+<view class="screen stack">
+  <view class="hero-panel stack">
+    <text class="eyebrow">帮助中心</text>
+    <text class="hero-title">从 KXApp 迁移到小程序的当前能力边界</text>
+    <text class="hero-copy">你可以在这里快速理解当前可用链路、推荐操作顺序和迁移取舍。</text>
+  </view>
+
+  <view class="section stack">
+    <text class="item-title">推荐操作顺序</text>
+    <block wx:for="{{quickFlows}}" wx:key="*this">
+      <text class="item-meta">- {{item}}</text>
+    </block>
+  </view>
+
+  <view class="section stack">
+    <text class="item-title">能力边界</text>
+    <block wx:for="{{capabilityBoundary}}" wx:key="*this">
+      <text class="item-meta">- {{item}}</text>
+    </block>
+  </view>
+</view>

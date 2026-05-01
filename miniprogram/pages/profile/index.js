@@ -23,6 +23,10 @@ Page({
     wx.navigateTo({ url: "/pages/projects/index" });
   },
 
+  goHelpCenter() {
+    wx.navigateTo({ url: "/pages/help/index" });
+  },
+
   logout() {
     session.clearSession();
     wx.reLaunch({ url: "/pages/auth/login/index" });
