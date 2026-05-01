@@ -6,7 +6,21 @@ const apiPath = path.resolve(__dirname, "../miniprogram/services/api/index.js");
 const pageAuthPath = path.resolve(__dirname, "../miniprogram/utils/page-auth.js");
 const formatterPath = path.resolve(__dirname, "../miniprogram/utils/status-formatters.js");
 
-function loadWorkspacePage() {
+function loadWorkspacePage({
+  selectedDevice = {
+    id: "dev_123",
+    name: "Old Device Name",
+    onlineStatus: "offline"
+  },
+  projects = [
+    { id: "prj_1", name: "Project A", sourceType: "text", selectedDeviceId: "dev_123" },
+    { id: "prj_2", name: "Project B", sourceType: "image", selectedDeviceId: "" },
+    { id: "prj_3", name: "Project C", sourceType: "text", selectedDeviceId: "dev_missing" }
+  ],
+  devices = [
+    { id: "dev_123", name: "KX Laser A1", onlineStatus: "online" }
+  ]
+} = {}) {
   delete require.cache[pagePath];
 
   let pageDefinition = null;
@@ -21,24 +35,14 @@ function loadWorkspacePage() {
     loaded: true,
     exports: {
       getSelectedDevice() {
-        return {
-          id: "dev_123",
-          name: "Old Device Name",
-          onlineStatus: "offline"
-        };
+        return selectedDevice;
       },
       async listProjects() {
-        return [
-          { id: "prj_1", name: "Project A", sourceType: "text", selectedDeviceId: "dev_123" },
-          { id: "prj_2", name: "Project B", sourceType: "image", selectedDeviceId: "" },
-          { id: "prj_3", name: "Project C", sourceType: "text", selectedDeviceId: "dev_missing" }
-        ];
+        return projects;
       },
       async listDevices() {
         return {
-          items: [
-            { id: "dev_123", name: "KX Laser A1", onlineStatus: "online" }
-          ]
+          items: devices
         };
       }
     }
@@ -70,8 +74,8 @@ function loadWorkspacePage() {
   return pageDefinition;
 }
 
-async function run() {
-  const pageDefinition = loadWorkspacePage();
+async function renderWorkspace(options) {
+  const pageDefinition = loadWorkspacePage(options);
   const ctx = {
     data: {},
     setData(patch) {
@@ -80,13 +84,26 @@ async function run() {
   };
 
   await pageDefinition.onShow.call(ctx);
+  return ctx.data;
+}
 
-  assert.strictEqual(ctx.data.currentDevice.name, "KX Laser A1");
-  assert.strictEqual(ctx.data.currentDevice.onlineStatus, "online");
-  assert.strictEqual(ctx.data.currentDevice.onlineStatusLabel, "status:online");
-  assert.strictEqual(ctx.data.projects[0].deviceName, "KX Laser A1");
-  assert.strictEqual(ctx.data.projects[1].deviceName, "待选择设备");
-  assert.strictEqual(ctx.data.projects[2].deviceName, "dev_missing");
+async function run() {
+  const data = await renderWorkspace();
+  assert.strictEqual(data.currentDevice.name, "KX Laser A1");
+  assert.strictEqual(data.currentDevice.onlineStatus, "online");
+  assert.strictEqual(data.currentDevice.onlineStatusLabel, "status:online");
+  assert.strictEqual(data.projects[0].deviceName, "KX Laser A1");
+  assert.strictEqual(data.projects[1].deviceName, "待选择设备");
+  assert.strictEqual(data.projects[2].deviceName, "dev_missing");
+
+  const emptyStateData = await renderWorkspace({
+    selectedDevice: {},
+    projects: [],
+    devices: []
+  });
+  assert.deepStrictEqual(emptyStateData.currentDevice, {
+    onlineStatusLabel: "未选择设备"
+  });
 }
 
 run().catch((error) => {

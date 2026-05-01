@@ -23,9 +23,11 @@ Page({
       const currentDevice = currentDeviceSource.id
         ? {
           ...currentDeviceSource,
-          onlineStatusLabel: formatDeviceStatus(currentDeviceSource.onlineStatus)
+          onlineStatusLabel: formatDeviceStatus(currentDeviceSource.onlineStatus) || "离线"
         }
-        : {};
+        : {
+          onlineStatusLabel: "未选择设备"
+        };
       const projects = allProjects.slice(0, 3).map((item) => ({
         ...item,
         deviceName: item.selectedDeviceId
