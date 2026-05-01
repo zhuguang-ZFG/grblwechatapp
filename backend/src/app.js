@@ -3,6 +3,7 @@ const path = require("path");
 const envDefaults = require("./config/env");
 const { createDatabase } = require("./shared/db");
 const { createArtifactStore } = require("./shared/storage/artifact-store");
+const { sendError } = require("./shared/http/error-response");
 const { registerAuthGuard } = require("./shared/http/auth-guard");
 const { createAuthService } = require("./modules/auth/service");
 const { registerAuthRoutes } = require("./modules/auth/routes");
@@ -63,12 +64,10 @@ function buildApp(options = {}) {
   app.get("/storage/*", async (request, reply) => {
     const relativePath = request.params["*"];
     if (!relativePath || relativePath.includes("..")) {
-      reply.code(404).send({ error: "not_found" });
-      return;
+      return sendError(reply, 404, "not_found", "Resource not found");
     }
     if (!app.artifacts.exists(relativePath)) {
-      reply.code(404).send({ error: "not_found" });
-      return;
+      return sendError(reply, 404, "not_found", "Resource not found");
     }
     const ext = path.extname(relativePath).toLowerCase();
     reply.header("Content-Type", MIME_TYPES[ext] || "application/octet-stream");

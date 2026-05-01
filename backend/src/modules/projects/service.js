@@ -144,7 +144,11 @@ function createProjectsService(app) {
     if (!existing) {
       return null;
     }
-    assertTransition(PROJECT, existing.status, PROJECT.ARCHIVED, "project");
+    try {
+      assertTransition(PROJECT, existing.status, PROJECT.ARCHIVED, "project");
+    } catch {
+      return { error: { code: "invalid_archive_target", message: "Only draft projects can be archived" } };
+    }
     db.prepare(`
       UPDATE projects
       SET status = ?, updated_at = ?
@@ -158,7 +162,11 @@ function createProjectsService(app) {
     if (!existing) {
       return null;
     }
-    assertTransition(PROJECT, existing.status, PROJECT.DRAFT, "project");
+    try {
+      assertTransition(PROJECT, existing.status, PROJECT.DRAFT, "project");
+    } catch {
+      return { error: { code: "invalid_restore_target", message: "Only archived projects can be restored" } };
+    }
     db.prepare(`
       UPDATE projects
       SET status = ?, updated_at = ?

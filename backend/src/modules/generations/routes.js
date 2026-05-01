@@ -12,6 +12,7 @@ function registerGenerationRoutes(app) {
       return sendError(reply, 404, "generation_input_not_found", "Project or preview was not found");
     }
 
+    reply.code(201);
     return generation;
   });
 

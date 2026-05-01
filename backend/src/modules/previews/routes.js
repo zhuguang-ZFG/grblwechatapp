@@ -6,6 +6,7 @@ function registerPreviewRoutes(app) {
     if (!preview) {
       return sendError(reply, 404, "project_not_found", "Project was not found");
     }
+    reply.code(201);
     return preview;
   });
 

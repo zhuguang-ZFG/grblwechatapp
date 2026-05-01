@@ -6,6 +6,7 @@ function registerJobRoutes(app) {
     if (!job) {
       return sendError(reply, 404, "job_input_not_found", "Project, generation, or device was not found");
     }
+    reply.code(201);
     return job;
   });
 

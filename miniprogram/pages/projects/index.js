@@ -75,42 +75,46 @@ Page({
   },
 
   async loadProjects() {
-    const filter = this.data.filterValues[this.data.filterIndex];
-    const allProjects = await api.listProjects();
-    const filtered = allProjects.filter((item) => {
-      const status = item.status || "draft";
-      if (filter === "archived") {
-        return status === "archived";
-      }
-      if (status === "archived") {
-        return false;
-      }
-      if (filter === "all") {
-        return true;
-      }
-      return item.sourceType === filter;
-    });
+    try {
+      const filter = this.data.filterValues[this.data.filterIndex];
+      const allProjects = await api.listProjects();
+      const filtered = allProjects.filter((item) => {
+        const status = item.status || "draft";
+        if (filter === "archived") {
+          return status === "archived";
+        }
+        if (status === "archived") {
+          return false;
+        }
+        if (filter === "all") {
+          return true;
+        }
+        return item.sourceType === filter;
+      });
 
-    const devices = await api.listDevices();
-    const deviceMap = Object.fromEntries((devices.items || []).map((item) => [item.id, item]));
+      const devices = await api.listDevices();
+      const deviceMap = Object.fromEntries((devices.items || []).map((item) => [item.id, item]));
 
-    const projects = filtered.map((item) => {
-      const status = item.status || "draft";
-      const isArchived = status === "archived";
-      return {
-        ...item,
-        sourceTypeLabel: formatProjectType(item.sourceType),
-        updatedAtLabel: formatProjectUpdatedAt(item.updatedAt),
-        previewStateLabel: formatArtifactState(item.latestPreviewId),
-        generationStateLabel: formatArtifactState(item.latestGenerationId),
-        deviceName: deviceMap[item.selectedDeviceId]?.name || item.selectedDeviceId || "未选择设备",
-        deviceStatusLabel: formatDeviceStatus(deviceMap[item.selectedDeviceId]?.onlineStatus),
-        isArchived,
-        archivedHint: isArchived ? "已归档项目仅支持恢复或删除。" : ""
-      };
-    });
+      const projects = filtered.map((item) => {
+        const status = item.status || "draft";
+        const isArchived = status === "archived";
+        return {
+          ...item,
+          sourceTypeLabel: formatProjectType(item.sourceType),
+          updatedAtLabel: formatProjectUpdatedAt(item.updatedAt),
+          previewStateLabel: formatArtifactState(item.latestPreviewId),
+          generationStateLabel: formatArtifactState(item.latestGenerationId),
+          deviceName: deviceMap[item.selectedDeviceId]?.name || item.selectedDeviceId || "未选择设备",
+          deviceStatusLabel: formatDeviceStatus(deviceMap[item.selectedDeviceId]?.onlineStatus),
+          isArchived,
+          archivedHint: isArchived ? "已归档项目仅支持恢复或删除。" : ""
+        };
+      });
 
-    this.setData({ projects });
+      this.setData({ projects });
+    } catch (error) {
+      showToast("加载项目列表失败");
+    }
   },
 
   openProject(event) {
@@ -121,16 +125,14 @@ Page({
     wx.navigateTo({ url: `/pages/workspace/editor/index?id=${event.currentTarget.dataset.id}` });
   },
 
-  async createTextProject() {
-    const selectedDevice = api.getSelectedDevice();
-    const result = await api.createProject("text", selectedDevice && selectedDevice.id);
-    wx.navigateTo({ url: `/pages/workspace/editor/index?id=${result.id}` });
-  },
-
-  async createImageProject() {
-    const selectedDevice = api.getSelectedDevice();
-    const result = await api.createProject("image", selectedDevice && selectedDevice.id);
-    wx.navigateTo({ url: `/pages/workspace/editor/index?id=${result.id}` });
+  async createProject(sourceType) {
+    try {
+      const selectedDevice = api.getSelectedDevice();
+      const result = await api.createProject(sourceType, selectedDevice && selectedDevice.id);
+      wx.navigateTo({ url: `/pages/workspace/editor/index?id=${result.id}` });
+    } catch (error) {
+      showToast("创建项目失败");
+    }
   },
 
   async openProjectActions(event) {
