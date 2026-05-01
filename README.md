@@ -61,6 +61,18 @@ cd backend
 npm run test:stable
 ```
 
+### 日志快速排障（可观测事件）
+
+结构化日志事件字典见：
+
+- `docs/superpowers/specs/2026-05-02-observability-events-v0.md`
+
+按 `traceId/jobId/deviceId/event/component/level` 过滤本地日志：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\log-query.ps1 -LogPath ".\backend\backend.log" -TraceId "trace_xxx"
+```
+
 ## CI 说明
 
 已配置 GitHub Actions：`.github/workflows/ci.yml`
