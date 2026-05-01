@@ -1,6 +1,6 @@
 const api = require("../../services/api");
 const pageAuth = require("../../utils/page-auth");
-const { formatJobStatus, formatJobStep } = require("../../utils/status-formatters");
+const { formatJobStatus, formatJobStep, formatDateTime } = require("../../utils/status-formatters");
 
 const FAILURE_CATEGORY_LABELS = {
   DEVICE: "设备问题",
@@ -46,44 +46,47 @@ Page({
   },
 
   formatTime(isoString) {
-    if (!isoString) return "-";
-    return isoString.replace("T", " ").replace(/\..+/, "").replace("Z", "");
+    return formatDateTime(isoString);
   },
 
   async loadJobs() {
-    const filter = this.data.filterValues[this.data.filterIndex];
-    const failureCategory = this.data.failureCategoryValues[this.data.failureCategoryIndex];
-    const result = await api.listJobs(filter, failureCategory);
-    const [projects, devices] = await Promise.all([
-      api.listProjects(),
-      api.listDevices()
-    ]);
-    const projectMap = Object.fromEntries((projects || []).map((item) => [item.id, item.name]));
-    const deviceMap = Object.fromEntries(((devices && devices.items) || []).map((item) => [item.id, item.name]));
-    const failedByCategory = (result.summary && result.summary.failedByCategory) || {};
-    const failedCategoryStats = this.data.failureCategoryValues
-      .filter((value) => value !== "all")
-      .map((value) => ({
-        key: value,
-        label: getFailureCategoryLabel(value),
-        count: failedByCategory[value] || 0
-      }))
-      .filter((item) => item.count > 0);
+    try {
+      const filter = this.data.filterValues[this.data.filterIndex];
+      const failureCategory = this.data.failureCategoryValues[this.data.failureCategoryIndex];
+      const result = await api.listJobs(filter, failureCategory);
+      const [projects, devices] = await Promise.all([
+        api.listProjects(),
+        api.listDevices()
+      ]);
+      const projectMap = Object.fromEntries((projects || []).map((item) => [item.id, item.name]));
+      const deviceMap = Object.fromEntries(((devices && devices.items) || []).map((item) => [item.id, item.name]));
+      const failedByCategory = (result.summary && result.summary.failedByCategory) || {};
+      const failedCategoryStats = this.data.failureCategoryValues
+        .filter((value) => value !== "all")
+        .map((value) => ({
+          key: value,
+          label: getFailureCategoryLabel(value),
+          count: failedByCategory[value] || 0
+        }))
+        .filter((item) => item.count > 0);
 
-    const jobs = result.items.map((item) => ({
-      ...item,
-      projectName: projectMap[item.projectId] || item.projectId,
-      deviceName: deviceMap[item.deviceId] || item.deviceId,
-      statusLabel: formatJobStatus(item.status),
-      stepLabel: formatJobStep(item.progress.currentStep),
-      failureCategoryLabel: getFailureCategoryLabel(item.failure && item.failure.category)
-    }));
+      const jobs = result.items.map((item) => ({
+        ...item,
+        projectName: projectMap[item.projectId] || item.projectId,
+        deviceName: deviceMap[item.deviceId] || item.deviceId,
+        statusLabel: formatJobStatus(item.status),
+        stepLabel: formatJobStep(item.progress.currentStep),
+        failureCategoryLabel: getFailureCategoryLabel(item.failure && item.failure.category)
+      }));
 
-    this.setData({
-      jobs,
-      failedCategoryStats,
-      lastRefreshedAt: new Date().toISOString()
-    });
+      this.setData({
+        jobs,
+        failedCategoryStats,
+        lastRefreshedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      wx.showToast({ title: "加载任务列表失败", icon: "none" });
+    }
   },
 
   openJob(event) {
@@ -91,7 +94,11 @@ Page({
   },
 
   async retryJob(event) {
-    const result = await api.retryJob(event.currentTarget.dataset.id);
-    wx.navigateTo({ url: `/pages/tasks/detail/index?id=${result.jobId}` });
+    try {
+      const result = await api.retryJob(event.currentTarget.dataset.id);
+      wx.navigateTo({ url: `/pages/tasks/detail/index?id=${result.jobId}` });
+    } catch (error) {
+      wx.showToast({ title: "重试失败", icon: "none" });
+    }
   }
 });

@@ -24,7 +24,7 @@ function createJobsService(app) {
   function createJob(userId, payload) {
     const project = db.prepare("SELECT * FROM projects WHERE id = ? AND owner_user_id = ?").get(payload.projectId, userId);
     const generation = db.prepare("SELECT * FROM generations WHERE id = ? AND project_id = ?").get(payload.generationId, payload.projectId);
-    const device = db.prepare("SELECT * FROM devices WHERE id = ?").get(payload.deviceId);
+    const device = db.prepare("SELECT * FROM devices WHERE id = ? AND (owner_user_id = ? OR owner_user_id = '')").get(payload.deviceId, userId);
 
     if (!project || !generation || !device) {
       return null;

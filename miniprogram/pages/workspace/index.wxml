@@ -39,12 +39,12 @@
       </view>
     </view>
     <view class="quick-grid">
-      <button class="quick-tile quick-tile-dark" bindtap="createTextProject">
+      <button class="quick-tile quick-tile-dark" data-source-type="text" bindtap="createProject">
         <text class="quick-kicker">文本项目</text>
         <text class="quick-title">输入文案并生成路径</text>
         <text class="quick-copy">适合铭牌、标识、短句雕刻</text>
       </button>
-      <button class="quick-tile quick-tile-warm" bindtap="createImageProject">
+      <button class="quick-tile quick-tile-warm" data-source-type="image" bindtap="createProject">
         <text class="quick-kicker">图片项目</text>
         <text class="quick-title">上传图像并走预处理</text>
         <text class="quick-copy">适合图案、徽标、素材导入</text>

@@ -10,8 +10,8 @@
       <view class="picker">当前筛选：{{filters[filterIndex]}}</view>
     </picker>
     <view class="row">
-      <button class="primary-btn" bindtap="createTextProject">新建文字项目</button>
-      <button class="secondary-btn" bindtap="createImageProject">新建图片项目</button>
+      <button class="primary-btn" data-source-type="text" bindtap="createProject">新建文字项目</button>
+      <button class="secondary-btn" data-source-type="image" bindtap="createProject">新建图片项目</button>
       <button class="ghost-btn" bindtap="importProject">导入</button>
     </view>
   </view>

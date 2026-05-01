@@ -75,7 +75,7 @@ test("preview generation and job flow reach ready/completed states", async () =>
     }
   });
 
-  assert.equal(previewCreate.statusCode, 200);
+  assert.equal(previewCreate.statusCode, 201);
   const previewId = previewCreate.json().previewId;
 
   await new Promise((resolve) => setTimeout(resolve, 80));
@@ -532,6 +532,128 @@ test("job endpoints reject cross-user access", async () => {
   });
   assert.equal(retryByAttacker.statusCode, 404);
   assert.equal(retryByAttacker.json().code, "job_not_found");
+
+  await app.close();
+});
+
+test("second user cannot create job referencing another user's device", async () => {
+  const { app } = createTestApp();
+  await app.ready();
+
+  const userAToken = await registerAndTokenWithOpenId(app, "openid_dev_a");
+  const userBToken = await registerAndTokenWithOpenId(app, "openid_dev_b");
+
+  // User A binds dev_123
+  await app.inject({
+    method: "POST",
+    url: "/api/v1/devices/bind",
+    headers: { authorization: `Bearer ${userAToken}` },
+    payload: { bindingCode: "ABCD1234" }
+  });
+
+  // User B binds dev_124
+  await app.inject({
+    method: "POST",
+    url: "/api/v1/devices/bind",
+    headers: { authorization: `Bearer ${userBToken}` },
+    payload: { bindingCode: "EFGH5678" }
+  });
+
+  // User A creates project, preview, generation
+  const projectA = await app.inject({
+    method: "POST",
+    url: "/api/v1/projects",
+    headers: { authorization: `Bearer ${userAToken}` },
+    payload: {
+      name: "A Project",
+      sourceType: "text",
+      selectedDeviceId: "dev_123",
+      content: { text: "A", imageAssetId: null },
+      layout: { widthMm: 80, heightMm: 50, rotationDeg: 0, align: "center" },
+      processParams: { speed: 1000, power: 65, passes: 1, lineSpacing: 1.2 }
+    }
+  });
+  const projectIdA = projectA.json().id;
+
+  const previewA = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectIdA}/preview`,
+    headers: { authorization: `Bearer ${userAToken}` },
+    payload: { forceRegenerate: true }
+  });
+  await new Promise((resolve) => setTimeout(resolve, 80));
+  const previewIdA = previewA.json().previewId;
+
+  const genA = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectIdA}/generate`,
+    headers: { authorization: `Bearer ${userAToken}` },
+    payload: { previewId: previewIdA }
+  });
+  await new Promise((resolve) => setTimeout(resolve, 80));
+  const genIdA = genA.json().generationId;
+
+  // User B creates project, preview, generation
+  const projectB = await app.inject({
+    method: "POST",
+    url: "/api/v1/projects",
+    headers: { authorization: `Bearer ${userBToken}` },
+    payload: {
+      name: "B Project",
+      sourceType: "text",
+      selectedDeviceId: "dev_124",
+      content: { text: "B", imageAssetId: null },
+      layout: { widthMm: 80, heightMm: 50, rotationDeg: 0, align: "center" },
+      processParams: { speed: 1000, power: 65, passes: 1, lineSpacing: 1.2 }
+    }
+  });
+  const projectIdB = projectB.json().id;
+
+  const previewB = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectIdB}/preview`,
+    headers: { authorization: `Bearer ${userBToken}` },
+    payload: { forceRegenerate: true }
+  });
+  await new Promise((resolve) => setTimeout(resolve, 80));
+  const previewIdB = previewB.json().previewId;
+
+  const genB = await app.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectIdB}/generate`,
+    headers: { authorization: `Bearer ${userBToken}` },
+    payload: { previewId: previewIdB }
+  });
+  await new Promise((resolve) => setTimeout(resolve, 80));
+  const genIdB = genB.json().generationId;
+
+  // User B tries to create job with User A's deviceId (dev_123)
+  const jobWithADevice = await app.inject({
+    method: "POST",
+    url: "/api/v1/jobs",
+    headers: { authorization: `Bearer ${userBToken}` },
+    payload: {
+      projectId: projectIdB,
+      generationId: genIdB,
+      deviceId: "dev_123",
+      executionMode: "offline_file"
+    }
+  });
+  assert.equal(jobWithADevice.statusCode, 404);
+
+  // User B uses their own deviceId (dev_124) — should succeed
+  const jobWithOwnDevice = await app.inject({
+    method: "POST",
+    url: "/api/v1/jobs",
+    headers: { authorization: `Bearer ${userBToken}` },
+    payload: {
+      projectId: projectIdB,
+      generationId: genIdB,
+      deviceId: "dev_124",
+      executionMode: "offline_file"
+    }
+  });
+  assert.equal(jobWithOwnDevice.statusCode, 201);
 
   await app.close();
 });

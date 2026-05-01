@@ -11,8 +11,12 @@ Page({
     if (!pageAuth.requireAuth()) {
       return;
     }
-    const user = await api.getMe();
-    this.setData({ user });
+    try {
+      const user = await api.getMe();
+      this.setData({ user });
+    } catch (error) {
+      wx.showToast({ title: "加载个人信息失败", icon: "none" });
+    }
   },
 
   goProjects() {

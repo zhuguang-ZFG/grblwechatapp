@@ -11,16 +11,20 @@ Page({
     if (!pageAuth.requireAuth()) {
       return;
     }
-    const selectedDevice = api.getSelectedDevice ? api.getSelectedDevice() || {} : {};
-    const result = await api.listDevices();
-    const devices = result.items.map((item) => ({
-      ...item,
-      onlineStatusLabel: formatDeviceStatus(item.onlineStatus),
-      lastSeenLabel: formatDateTime(item.lastSeenAt),
-      isSelected: item.id === selectedDevice.id,
-      selectedLabel: item.id === selectedDevice.id ? "当前设备" : ""
-    }));
-    this.setData({ devices });
+    try {
+      const selectedDevice = api.getSelectedDevice ? api.getSelectedDevice() || {} : {};
+      const result = await api.listDevices();
+      const devices = result.items.map((item) => ({
+        ...item,
+        onlineStatusLabel: formatDeviceStatus(item.onlineStatus),
+        lastSeenLabel: formatDateTime(item.lastSeenAt),
+        isSelected: item.id === selectedDevice.id,
+        selectedLabel: item.id === selectedDevice.id ? "当前设备" : ""
+      }));
+      this.setData({ devices });
+    } catch (error) {
+      wx.showToast({ title: "加载设备列表失败", icon: "none" });
+    }
   },
 
   selectDevice(event) {

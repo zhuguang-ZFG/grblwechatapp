@@ -1,12 +1,13 @@
 function createDevicesService(app) {
   const db = app.db;
 
-  function listDevices() {
+  function listDevices(userId) {
     const items = db.prepare(`
       SELECT id, name, model, bind_status, online_status, last_seen_at
       FROM devices
+      WHERE owner_user_id = '' OR owner_user_id = ?
       ORDER BY id ASC
-    `).all();
+    `).all(userId);
 
     return {
       items: items.map((item) => ({
@@ -24,6 +25,10 @@ function createDevicesService(app) {
     const device = db.prepare("SELECT * FROM devices WHERE binding_code = ?").get(bindingCode);
     if (!device) {
       return null;
+    }
+
+    if (device.owner_user_id && device.owner_user_id !== "") {
+      return { error: { code: "device_already_bound", message: "该设备已被绑定" } };
     }
 
     db.prepare(`

@@ -12,19 +12,23 @@ Page({
     if (!pageAuth.requireAuth()) {
       return;
     }
-    const rawDevice = api.getSelectedDevice() || {};
-    const currentDevice = {
-      ...rawDevice,
-      onlineStatusLabel: formatDeviceStatus(rawDevice.onlineStatus)
-    };
-    const allProjects = await api.listProjects();
-    const devices = await api.listDevices();
-    const deviceMap = Object.fromEntries((devices.items || []).map((item) => [item.id, item.name]));
-    const projects = allProjects.slice(0, 3).map((item) => ({
-      ...item,
-      deviceName: deviceMap[item.selectedDeviceId] || "待选择设备"
-    }));
-    this.setData({ currentDevice, projects });
+    try {
+      const rawDevice = api.getSelectedDevice() || {};
+      const currentDevice = {
+        ...rawDevice,
+        onlineStatusLabel: formatDeviceStatus(rawDevice.onlineStatus)
+      };
+      const allProjects = await api.listProjects();
+      const devices = await api.listDevices();
+      const deviceMap = Object.fromEntries((devices.items || []).map((item) => [item.id, item.name]));
+      const projects = allProjects.slice(0, 3).map((item) => ({
+        ...item,
+        deviceName: deviceMap[item.selectedDeviceId] || "待选择设备"
+      }));
+      this.setData({ currentDevice, projects });
+    } catch (error) {
+      wx.showToast({ title: "加载工作台数据失败", icon: "none" });
+    }
   },
 
   async createProject(event) {

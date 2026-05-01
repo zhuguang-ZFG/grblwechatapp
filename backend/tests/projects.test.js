@@ -18,6 +18,22 @@ async function registerAndToken(app) {
   return response.json().token;
 }
 
+async function registerAndTokenWithOpenId(app, openId) {
+  const response = await app.inject({
+    method: "POST",
+    url: "/api/v1/auth/register",
+    payload: {
+      wechatOpenId: openId,
+      nickname: `User-${openId}`,
+      avatarUrl: "",
+      mobile: "13800000000",
+      agreeTerms: true
+    }
+  });
+
+  return response.json().token;
+}
+
 test("list devices returns seeded devices for authenticated user", async () => {
   const { app } = createTestApp();
   await app.ready();
@@ -72,7 +88,7 @@ test("create and fetch project persists project data", async () => {
     }
   });
 
-  assert.equal(created.statusCode, 200);
+  assert.equal(created.statusCode, 201);
   const projectId = created.json().id;
 
   const fetched = await app.inject({
@@ -120,6 +136,79 @@ test("bind device marks device as bound for current user", async () => {
   const bound = devices.json().items.find((item) => item.id === response.json().deviceId);
   assert.equal(bound.bindStatus, "bound");
   assert.equal(bound.onlineStatus, "online");
+
+  await app.close();
+});
+
+test("second user cannot re-bind an already bound device", async () => {
+  const { app } = createTestApp();
+  await app.ready();
+  const userAToken = await registerAndTokenWithOpenId(app, "openid_bind_a");
+
+  const bindA = await app.inject({
+    method: "POST",
+    url: "/api/v1/devices/bind",
+    headers: { authorization: `Bearer ${userAToken}` },
+    payload: { bindingCode: "ABCD1234" }
+  });
+  assert.equal(bindA.statusCode, 200);
+  assert.equal(bindA.json().bindStatus, "bound");
+
+  // User B tries to re-bind the same device
+  const userBToken = await registerAndTokenWithOpenId(app, "openid_bind_b");
+  const bindB = await app.inject({
+    method: "POST",
+    url: "/api/v1/devices/bind",
+    headers: { authorization: `Bearer ${userBToken}` },
+    payload: { bindingCode: "ABCD1234" }
+  });
+  assert.equal(bindB.statusCode, 409);
+  assert.equal(bindB.json().code, "device_already_bound");
+
+  // User A's bind is still intact
+  const devicesA = await app.inject({
+    method: "GET",
+    url: "/api/v1/devices",
+    headers: { authorization: `Bearer ${userAToken}` }
+  });
+  assert.equal(devicesA.json().items.some((d) => d.id === "dev_123"), true);
+
+  await app.close();
+});
+
+test("device list scoped to bound user", async () => {
+  const { app } = createTestApp();
+  await app.ready();
+
+  // Both devices initially have owner_user_id='' in seed data
+
+  // User A binds dev_123
+  const tokenA = await registerAndTokenWithOpenId(app, "openid_scope_a");
+  await app.inject({
+    method: "POST",
+    url: "/api/v1/devices/bind",
+    headers: { authorization: `Bearer ${tokenA}` },
+    payload: { bindingCode: "ABCD1234" }
+  });
+
+  // User A sees dev_123 (owned) + dev_124 (unbound) = 2
+  const listA = await app.inject({
+    method: "GET",
+    url: "/api/v1/devices",
+    headers: { authorization: `Bearer ${tokenA}` }
+  });
+  assert.equal(listA.json().items.length, 2);
+  assert.equal(listA.json().items.some((d) => d.id === "dev_123"), true);
+
+  // User B — only sees dev_124 (unbound), NOT dev_123 (bound by A)
+  const tokenB = await registerAndTokenWithOpenId(app, "openid_scope_b");
+  const listB = await app.inject({
+    method: "GET",
+    url: "/api/v1/devices",
+    headers: { authorization: `Bearer ${tokenB}` }
+  });
+  assert.equal(listB.json().items.length, 1);
+  assert.equal(listB.json().items[0].id, "dev_124");
 
   await app.close();
 });

@@ -422,57 +422,69 @@ Page({
   },
 
   async loadProject() {
-    const project = await api.getProject(this.data.id);
-    this.setData({ project });
-    this.scheduleRender();
+    try {
+      const project = await api.getProject(this.data.id);
+      this.setData({ project });
+      this.scheduleRender();
+    } catch (error) {
+      wx.showToast({ title: "加载项目失败", icon: "none" });
+    }
   },
 
   async loadDevice() {
-    const device = await api.getSelectedDevice();
-    const deviceInfo = device
-      ? { ...device, onlineStatusLabel: formatDeviceStatus(device.onlineStatus) }
-      : {};
-    this.setData({ device: deviceInfo });
+    try {
+      const device = await api.getSelectedDevice();
+      const deviceInfo = device
+        ? { ...device, onlineStatusLabel: formatDeviceStatus(device.onlineStatus) }
+        : {};
+      this.setData({ device: deviceInfo });
+    } catch (error) {
+      wx.showToast({ title: "加载设备信息失败", icon: "none" });
+    }
   },
 
   async loadProfiles() {
-    const [machineResult, materialResult, fontResult, processorResult] = await Promise.all([
-      api.listMachineProfiles(),
-      api.listMaterialProfiles(),
-      api.listFonts(),
-      api.listImageProcessors()
-    ]);
-    const machineOptions = (machineResult.items || []).map((item) => ({
-      id: item.id,
-      name: item.name
-    }));
-    const materialOptions = (materialResult.items || []).map((item) => ({
-      id: item.id,
-      name: item.name
-    }));
-    const fontOptions = (fontResult.items || []).map((item) => ({
-      id: item.id,
-      name: item.name
-    }));
-    const processorOptions = (processorResult.items || []).map((item) => ({
-      id: item.id,
-      name: item.name
-    }));
-    const machineIndex = Math.max(0, machineOptions.findIndex((o) => o.id === this.data.project.machineProfileId));
-    const materialIndex = Math.max(0, materialOptions.findIndex((o) => o.id === this.data.project.materialProfileId));
-    const fontIndex = Math.max(0, fontOptions.findIndex((o) => o.id === this.data.project.content.fontId));
-    const processorIndex = Math.max(0, processorOptions.findIndex((o) => o.id === this.data.project.content.processorPresetId));
+    try {
+      const [machineResult, materialResult, fontResult, processorResult] = await Promise.all([
+        api.listMachineProfiles(),
+        api.listMaterialProfiles(),
+        api.listFonts(),
+        api.listImageProcessors()
+      ]);
+      const machineOptions = (machineResult.items || []).map((item) => ({
+        id: item.id,
+        name: item.name
+      }));
+      const materialOptions = (materialResult.items || []).map((item) => ({
+        id: item.id,
+        name: item.name
+      }));
+      const fontOptions = (fontResult.items || []).map((item) => ({
+        id: item.id,
+        name: item.name
+      }));
+      const processorOptions = (processorResult.items || []).map((item) => ({
+        id: item.id,
+        name: item.name
+      }));
+      const machineIndex = Math.max(0, machineOptions.findIndex((o) => o.id === this.data.project.machineProfileId));
+      const materialIndex = Math.max(0, materialOptions.findIndex((o) => o.id === this.data.project.materialProfileId));
+      const fontIndex = Math.max(0, fontOptions.findIndex((o) => o.id === this.data.project.content.fontId));
+      const processorIndex = Math.max(0, processorOptions.findIndex((o) => o.id === this.data.project.content.processorPresetId));
 
-    this.setData({
-      machineProfileOptions: machineOptions,
-      materialProfileOptions: materialOptions,
-      machineProfileIndex: machineIndex,
-      materialProfileIndex: materialIndex,
-      fontOptions: fontOptions,
-      fontIndex: fontIndex,
-      processorOptions: processorOptions,
-      processorIndex: processorIndex
-    });
+      this.setData({
+        machineProfileOptions: machineOptions,
+        materialProfileOptions: materialOptions,
+        machineProfileIndex: machineIndex,
+        materialProfileIndex: materialIndex,
+        fontOptions: fontOptions,
+        fontIndex: fontIndex,
+        processorOptions: processorOptions,
+        processorIndex: processorIndex
+      });
+    } catch (error) {
+      wx.showToast({ title: "加载配置列表失败", icon: "none" });
+    }
   },
 
   onFontChange(event) {
@@ -612,9 +624,13 @@ Page({
   },
 
   async saveProject() {
-    const project = await api.saveProject(this.data.id, this.data.project);
-    this.setData({ project, dirty: false });
-    wx.showToast({ title: "已保存", icon: "success" });
+    try {
+      const project = await api.saveProject(this.data.id, this.data.project);
+      this.setData({ project, dirty: false });
+      wx.showToast({ title: "已保存", icon: "success" });
+    } catch (error) {
+      wx.showToast({ title: "保存失败", icon: "none" });
+    }
   },
 
   async autoSave() {
