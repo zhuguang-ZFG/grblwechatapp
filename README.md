@@ -68,10 +68,22 @@ npm run test:stable
 
 - `docs/superpowers/specs/2026-05-02-observability-events-v0.md`
 
-按 `traceId/jobId/deviceId/event/component/level` 过滤本地日志：
+按 `traceId/requestId/tickId/jobId/deviceId/event/component/level` 过滤本地日志：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\log-query.ps1 -LogPath ".\backend\backend.log" -TraceId "trace_xxx"
+```
+
+按 `requestId` 串起一次 HTTP 请求触发的所有日志行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\log-query.ps1 -LogPath ".\backend\backend.log" -RequestId "req_xxx"
+```
+
+按网关后台 sweep 的 `tickId` 过滤离线类事件：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\log-query.ps1 -LogPath ".\backend\backend.log" -TickId "gw_tick_7"
 ```
 
 ## CI 说明

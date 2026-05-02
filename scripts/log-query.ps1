@@ -2,6 +2,8 @@ param(
   [Parameter(Mandatory = $true)]
   [string]$LogPath,
   [string]$TraceId,
+  [string]$RequestId,
+  [string]$TickId,
   [string]$JobId,
   [string]$DeviceId,
   [string]$Event,
@@ -40,6 +42,12 @@ $filtered = $jsonObjects
 
 if ($TraceId) {
   $filtered = $filtered | Where-Object { $_.traceId -eq $TraceId }
+}
+if ($RequestId) {
+  $filtered = $filtered | Where-Object { $_.requestId -eq $RequestId }
+}
+if ($TickId) {
+  $filtered = $filtered | Where-Object { $_.tickId -eq $TickId }
 }
 if ($JobId) {
   $filtered = $filtered | Where-Object { $_.jobId -eq $JobId }

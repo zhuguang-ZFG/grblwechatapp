@@ -49,6 +49,7 @@
   - `docs/superpowers/specs/2026-05-02-observability-events-v0.md`
 - Local log filter script exists:
   - `scripts/log-query.ps1`
+  - Supports filtering by `traceId`, `jobId`, `deviceId`, `event`, `component`, `level`, `requestId`, `tickId`
 
 ## 3. Verified Commands (Current Baseline)
 
@@ -80,9 +81,9 @@ node tests/failure-code-doc-sync.test.js
 
 ### P0 Next
 
-1. Add quick troubleshooting snippet using `scripts/gateway-ack-smoke.js` + `scripts/log-query.ps1`.
-2. Add one observability smoke test for dashboard/search/template/profile event logging keys.
-3. Extend `scripts/log-query.ps1` to filter by `tickId` (and optionally `requestId`) for gateway timer diagnostics.
+1. Add one observability smoke test for dashboard/search/template/profile event logging keys.
+2. Add quick troubleshooting snippet using `scripts/gateway-ack-smoke.js` + `scripts/log-query.ps1` (copy/paste block in README or this doc section 3).
+3. Add `gateway_stale_sweep` summary event once per timer tick (optional; reduces log volume vs per-device offline lines).
 
 ### P1 Next
 
