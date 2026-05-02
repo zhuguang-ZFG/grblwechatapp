@@ -43,6 +43,7 @@
 
 - Structured logs include `at`, `level`, `component`, `event`.
 - Request-level `requestId` middleware is active and emitted in route-side logs.
+- Gateway stale/offline timer emits `tickId` for background correlation when no HTTP request exists.
 - Job creation supports trace propagation (`x-trace-id`) and always emits `traceId`.
 - Event dictionary doc exists:
   - `docs/superpowers/specs/2026-05-02-observability-events-v0.md`
@@ -79,9 +80,9 @@ node tests/failure-code-doc-sync.test.js
 
 ### P0 Next
 
-1. Add requestId correlation to gateway lease expiry/offline timer logs (timer tick correlation strategy).
-2. Add quick troubleshooting snippet using `scripts/gateway-ack-smoke.js` + `scripts/log-query.ps1`.
-3. Add one observability smoke test for dashboard/search/template/profile event logging keys.
+1. Add quick troubleshooting snippet using `scripts/gateway-ack-smoke.js` + `scripts/log-query.ps1`.
+2. Add one observability smoke test for dashboard/search/template/profile event logging keys.
+3. Extend `scripts/log-query.ps1` to filter by `tickId` (and optionally `requestId`) for gateway timer diagnostics.
 
 ### P1 Next
 

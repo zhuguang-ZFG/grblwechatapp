@@ -8,6 +8,7 @@ function createGatewayService(app) {
   const db = app.db;
   const dispatchLeaseMs = Number(app.env.gatewayDispatchLeaseMs || 15000);
   const heartbeatStaleMs = Number(app.env.gatewayHeartbeatStaleMs || 60000);
+  let staleTickSeq = 0;
 
   // In-memory device sessions
   const sessions = new Map();
@@ -38,7 +39,7 @@ function createGatewayService(app) {
     return gen ? { jobId, gcodeAssetPath: gen.gcode_asset_path } : null;
   }
 
-  function releaseExpiredLease(deviceId) {
+  function releaseExpiredLease(deviceId, options = {}) {
     const lease = inFlightJobs.get(deviceId);
     if (!lease) {
       return;
@@ -47,7 +48,11 @@ function createGatewayService(app) {
       return;
     }
     inFlightJobs.delete(deviceId);
+    const jobRow = db.prepare("SELECT trace_id FROM jobs WHERE id = ?").get(lease.jobId);
     app.logEvent("gateway_dispatch_lease_expired", {
+      requestId: options.requestId || "",
+      tickId: options.tickId || "",
+      traceId: jobRow && jobRow.trace_id ? jobRow.trace_id : "",
       deviceId,
       jobId: lease.jobId,
       leaseExpiresAt: new Date(lease.leaseExpiresAt).toISOString()
@@ -119,7 +124,10 @@ function createGatewayService(app) {
   }
 
   function getPendingJob(deviceId, options = {}) {
-    releaseExpiredLease(deviceId);
+    releaseExpiredLease(deviceId, {
+      requestId: options.requestId || "",
+      tickId: options.tickId || ""
+    });
 
     const activeLease = inFlightJobs.get(deviceId);
     if (activeLease) {
@@ -236,7 +244,7 @@ function createGatewayService(app) {
     `).run("online", now(), deviceId);
   }
 
-  function markOffline(deviceId) {
+  function markOffline(deviceId, options = {}) {
     const s = sessions.get(deviceId);
     if (s) s.online = false;
     inFlightJobs.delete(deviceId);
@@ -245,7 +253,10 @@ function createGatewayService(app) {
       WHERE id = ?
     `).run("offline", now(), deviceId);
     app.logEvent("gateway_device_offline", {
-      deviceId
+      requestId: options.requestId || "",
+      tickId: options.tickId || "",
+      deviceId,
+      lastHeartbeat: s && s.lastHeartbeat ? s.lastHeartbeat : ""
     }, {
       component: "gateway",
       level: "warn"
@@ -258,10 +269,12 @@ function createGatewayService(app) {
 
   // Stale detection: mark devices offline if no heartbeat in 60s
   const staleTimer = setInterval(() => {
+    staleTickSeq += 1;
+    const tickId = `gw_tick_${staleTickSeq}`;
     const deadline = Date.now() - heartbeatStaleMs;
     for (const [deviceId, session] of sessions) {
       if (session.lastHeartbeat && new Date(session.lastHeartbeat).getTime() < deadline) {
-        markOffline(deviceId);
+        markOffline(deviceId, { tickId });
       }
     }
   }, 30000);

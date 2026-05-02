@@ -25,6 +25,7 @@ This v0 does not yet cover:
   "level": "info",
   "component": "gateway",
   "requestId": "req_...",
+  "tickId": "gw_tick_...",
   "event": "gateway_job_enqueued",
   "traceId": "trace_...",
   "...": "event-specific fields"
@@ -37,6 +38,7 @@ Field semantics:
 - `level`: `info` or `warn` in current v0
 - `component`: logical backend module (`jobs`, `gateway`, `app`)
 - `requestId`: request-scope correlation id from middleware (`x-request-id` propagated or generated)
+- `tickId`: gateway background timer correlation id (only for timer-driven paths without an HTTP request)
 - `event`: stable machine-readable event name
 - `traceId`: cross-step correlation id (when available)
 
@@ -54,11 +56,11 @@ Field semantics:
 | `gateway_progress_rejected_transition` | `gateway` | `warn` | Service rejects invalid state transition in progress report | `requestId`, `traceId`, `deviceId`, `jobId`, `fromStatus`, `toStatus` |
 | `gateway_job_enqueued` | `gateway` | `info` | Job queued to gateway pending queue | `traceId`, `jobId`, `deviceId`, `queueSize` |
 | `gateway_job_leased` | `gateway` | `info` | Pending job leased to polling device | `deviceId`, `jobId`, `leaseMs` |
-| `gateway_dispatch_lease_expired` | `gateway` | `warn` | Lease expired before ACK/progress | `deviceId`, `jobId`, `leaseExpiresAt` |
+| `gateway_dispatch_lease_expired` | `gateway` | `warn` | Lease expired before ACK/progress | `deviceId`, `jobId`, `leaseExpiresAt`, `traceId` (when job row exists), `requestId` (when expired during HTTP poll), `tickId` (when expired during timer-only path) |
 | `gateway_job_acknowledged` | `gateway` | `info` | ACK/progress confirms job consumption | `deviceId`, `jobId` |
 | `gateway_job_progress_applied` | `gateway` | `info` | Progress accepted and written to DB | `traceId`, `deviceId`, `jobId`, `status`, `percent`, `currentStep` |
 | `gateway_job_dispatched_simulation` | `gateway` | `info` | Fallback simulation dispatch path | `traceId`, `jobId`, `deviceId` |
-| `gateway_device_offline` | `gateway` | `warn` | Device marked offline by stale check | `deviceId` |
+| `gateway_device_offline` | `gateway` | `warn` | Device marked offline by stale check | `deviceId`, `tickId`, `lastHeartbeat` |
 
 ## Correlation Rules
 
@@ -67,6 +69,7 @@ Field semantics:
 3. Client can pass `x-trace-id` when creating job; server reuses it.
 4. Gateway and job events should include `traceId` whenever related job row is available.
 5. `jobId` is required for all job-execution-path events except auth/heartbeat-only events.
+6. Timer-driven gateway events must include `tickId` (and may omit `requestId`).
 
 ## Evolution Rules
 
@@ -80,6 +83,5 @@ When adding new events:
 
 ## Known Gaps
 
-- no standardized request-id middleware yet
 - no persistence/export pipeline for logs yet
 - no event sampling policy yet
